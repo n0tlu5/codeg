@@ -459,6 +459,7 @@ mod tests {
         }
         async fn send_to_session(
             &self,
+            _requester_conn_id: &str,
             _session_id: i64,
             _text: String,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
@@ -469,6 +470,7 @@ mod tests {
         }
         async fn cancel_session(
             &self,
+            _requester_conn_id: &str,
             _session_id: i64,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
             crate::acp::delegation::transport::AssistantActionResult {
@@ -478,6 +480,7 @@ mod tests {
         }
         async fn answer_permission(
             &self,
+            _requester_conn_id: &str,
             _session_id: i64,
             _decision: String,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
@@ -488,6 +491,7 @@ mod tests {
         }
         async fn start_session(
             &self,
+            _requester_conn_id: &str,
             _folder_id: i64,
             _agent_type: String,
             _task: String,

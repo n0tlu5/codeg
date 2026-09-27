@@ -5644,6 +5644,20 @@ async fn run_connection(
                             Ok(()) => return Ok(()),
                             Err(responder) => responder,
                         };
+                    // An approval gating one of codeg's assistant workspace-action
+                    // tools on the assistant connection is also redundant: codeg's
+                    // own confirmation card is the user-facing gate.
+                    let owner_label = state_inner.read().await.owner_window_label.clone();
+                    let responder = match try_auto_allow_codeg_assistant_tool(
+                        &owner_label,
+                        &req,
+                        responder,
+                    )
+                    .await
+                    {
+                        Ok(()) => return Ok(()),
+                        Err(responder) => responder,
+                    };
                     // pi asks the user a question THROUGH this channel (see
                     // `try_bridge_pi_select_ask`); route it to the interactive
                     // question card instead of an approval card. Every reject
@@ -7038,6 +7052,62 @@ async fn handle_grok_ask_user_question(
 /// durable permission rule into the user's own agent settings — a decision that
 /// outlives this turn and this connection, so it stays theirs to make. With no
 /// such option (an agent that offers only "always"), `None` keeps today's card.
+/// Find the `allow_once` option id to auto-select when a permission request is
+/// gating one of codeg's own assistant workspace-action tools. Mirrors
+/// [`codeg_ask_auto_allow_option`]: the confirmation card codeg itself shows
+/// IS the user's consent, so asking the user to also approve the raw MCP
+/// tool call is a spurious second dialog.
+///
+/// Checked only when the caller already knows the connection carries
+/// `ASSISTANT_OWNER_LABEL` (see [`try_auto_allow_codeg_assistant_tool`]).
+fn codeg_assistant_auto_allow_option(req: &RequestPermissionRequest) -> Option<String> {
+    let permission_title = req
+        .meta
+        .as_ref()
+        .and_then(|m| m.get("permission"))
+        .and_then(|p| p.get("title"))
+        .and_then(serde_json::Value::as_str);
+    let is_assistant_tool = [req.tool_call.fields.title.as_deref(), permission_title]
+        .into_iter()
+        .flatten()
+        .any(crate::acp::question::is_codeg_assistant_tool_name);
+    if !is_assistant_tool {
+        return None;
+    }
+    req.options
+        .iter()
+        .find(|opt| opt.kind == PermissionOptionKind::AllowOnce)
+        .map(|opt| opt.option_id.to_string())
+}
+
+/// Auto-allow a permission request that gates one of codeg's own assistant
+/// mutating tools on an ASSISTANT_OWNER_LABEL connection. The codeg-authored
+/// confirmation card is the actual user-facing gate; the raw tool-call
+/// approval would be a redundant second dialog.
+///
+/// `Err(responder)` returns the request to the normal permission path.
+#[allow(clippy::result_large_err)]
+async fn try_auto_allow_codeg_assistant_tool(
+    owner_window_label: &str,
+    req: &RequestPermissionRequest,
+    responder: Responder<RequestPermissionResponse>,
+) -> Result<(), Responder<RequestPermissionResponse>> {
+    if owner_window_label != crate::commands::assistant::ASSISTANT_OWNER_LABEL {
+        return Err(responder);
+    }
+    let Some(option_id) = codeg_assistant_auto_allow_option(req) else {
+        return Err(responder);
+    };
+    tracing::debug!(
+        "[ACP] auto-allowing assistant-tool permission on the assistant connection \
+         (option {option_id}); the codeg confirmation card is the actual gate"
+    );
+    let _ = responder.respond(RequestPermissionResponse::new(
+        RequestPermissionOutcome::Selected(SelectedPermissionOutcome::new(option_id)),
+    ));
+    Ok(())
+}
+
 fn codeg_ask_auto_allow_option(req: &RequestPermissionRequest) -> Option<String> {
     let permission_title = req
         .meta
@@ -18093,6 +18163,42 @@ mod tests {
             ],
         );
         assert!(codeg_ask_auto_allow_option(&always_only).is_none());
+    }
+
+    #[test]
+    fn codeg_assistant_auto_allow_option_picks_allow_once_for_assistant_tools() {
+        for tool_name in [
+            "mcp__codeg-mcp__send_to_session",
+            "mcp__codeg-mcp__cancel_session",
+            "mcp__codeg-mcp__answer_permission",
+            "mcp__codeg-mcp__start_session",
+        ] {
+            let req =
+                claude_mcp_permission_request(tool_name, claude_permission_options());
+            assert_eq!(
+                codeg_assistant_auto_allow_option(&req).as_deref(),
+                Some("allow-once"),
+                "{tool_name} should auto-allow"
+            );
+        }
+    }
+
+    #[test]
+    fn codeg_assistant_auto_allow_option_rejects_non_assistant_tools() {
+        for tool_name in [
+            "mcp__other-server__send_to_session",
+            "mcp__codeg-mcp__ask_user_question",
+            "mcp__codeg-mcp__list_sessions",
+            "mcp__codeg-mcp__focus_session",
+            "Bash",
+        ] {
+            let req =
+                claude_mcp_permission_request(tool_name, claude_permission_options());
+            assert!(
+                codeg_assistant_auto_allow_option(&req).is_none(),
+                "{tool_name} must keep its approval card"
+            );
+        }
     }
 
     #[test]

@@ -1077,6 +1077,11 @@ mod tauri_app {
                                         app.handle().clone(),
                                     ),
                                 ),
+                                questions: std::sync::Arc::new(
+                                    crate::commands::assistant_tools::ManagerQuestions(
+                                        std::sync::Arc::new(cm_state.clone_ref()),
+                                    ),
+                                ),
                             },
                         ),
                     );

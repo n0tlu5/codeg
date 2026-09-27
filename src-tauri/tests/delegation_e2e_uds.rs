@@ -153,14 +153,24 @@ impl AssistantToolAccess for NoAssistant {
     async fn focus_session(&self, _session_id: i64) -> AssistantActionResult {
         no_assistant()
     }
-    async fn send_to_session(&self, _session_id: i64, _text: String) -> AssistantActionResult {
+    async fn send_to_session(
+        &self,
+        _requester_conn_id: &str,
+        _session_id: i64,
+        _text: String,
+    ) -> AssistantActionResult {
         no_assistant()
     }
-    async fn cancel_session(&self, _session_id: i64) -> AssistantActionResult {
+    async fn cancel_session(
+        &self,
+        _requester_conn_id: &str,
+        _session_id: i64,
+    ) -> AssistantActionResult {
         no_assistant()
     }
     async fn answer_permission(
         &self,
+        _requester_conn_id: &str,
         _session_id: i64,
         _decision: String,
     ) -> AssistantActionResult {
@@ -168,6 +178,7 @@ impl AssistantToolAccess for NoAssistant {
     }
     async fn start_session(
         &self,
+        _requester_conn_id: &str,
         _folder_id: i64,
         _agent_type: String,
         _task: String,

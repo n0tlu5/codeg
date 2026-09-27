@@ -516,7 +516,11 @@ impl DelegationListener {
                 }
                 let res = self
                     .assistant
-                    .send_to_session(req.session_id, req.text)
+                    .send_to_session(
+                        &entry.parent_connection_id,
+                        req.session_id,
+                        req.text,
+                    )
                     .await;
                 BrokerResponse {
                     outcome: serde_json::to_value(res).unwrap_or_else(|_| serde_json::Value::Null),
@@ -547,7 +551,10 @@ impl DelegationListener {
                     .await?;
                     return Ok(());
                 }
-                let res = self.assistant.cancel_session(req.session_id).await;
+                let res = self
+                    .assistant
+                    .cancel_session(&entry.parent_connection_id, req.session_id)
+                    .await;
                 BrokerResponse {
                     outcome: serde_json::to_value(res).unwrap_or_else(|_| serde_json::Value::Null),
                 }
@@ -579,7 +586,11 @@ impl DelegationListener {
                 }
                 let res = self
                     .assistant
-                    .answer_permission(req.session_id, req.decision)
+                    .answer_permission(
+                        &entry.parent_connection_id,
+                        req.session_id,
+                        req.decision,
+                    )
                     .await;
                 BrokerResponse {
                     outcome: serde_json::to_value(res).unwrap_or_else(|_| serde_json::Value::Null),
@@ -612,7 +623,12 @@ impl DelegationListener {
                 }
                 let res = self
                     .assistant
-                    .start_session(req.folder_id, req.agent_type, req.task)
+                    .start_session(
+                        &entry.parent_connection_id,
+                        req.folder_id,
+                        req.agent_type,
+                        req.task,
+                    )
                     .await;
                 BrokerResponse {
                     outcome: serde_json::to_value(res).unwrap_or_else(|_| serde_json::Value::Null),
@@ -1961,6 +1977,7 @@ mod tests {
         }
         async fn send_to_session(
             &self,
+            _requester_conn_id: &str,
             _session_id: i64,
             _text: String,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
@@ -1971,6 +1988,7 @@ mod tests {
         }
         async fn cancel_session(
             &self,
+            _requester_conn_id: &str,
             _session_id: i64,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
             crate::acp::delegation::transport::AssistantActionResult {
@@ -1980,6 +1998,7 @@ mod tests {
         }
         async fn answer_permission(
             &self,
+            _requester_conn_id: &str,
             _session_id: i64,
             _decision: String,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
@@ -1990,6 +2009,7 @@ mod tests {
         }
         async fn start_session(
             &self,
+            _requester_conn_id: &str,
             _folder_id: i64,
             _agent_type: String,
             _task: String,
@@ -2039,32 +2059,36 @@ mod tests {
         }
         async fn send_to_session(
             &self,
+            requester_conn_id: &str,
             session_id: i64,
             text: String,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
-            StubAssistant.send_to_session(session_id, text).await
+            StubAssistant.send_to_session(requester_conn_id, session_id, text).await
         }
         async fn cancel_session(
             &self,
+            requester_conn_id: &str,
             session_id: i64,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
-            StubAssistant.cancel_session(session_id).await
+            StubAssistant.cancel_session(requester_conn_id, session_id).await
         }
         async fn answer_permission(
             &self,
+            requester_conn_id: &str,
             session_id: i64,
             decision: String,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
-            StubAssistant.answer_permission(session_id, decision).await
+            StubAssistant.answer_permission(requester_conn_id, session_id, decision).await
         }
         async fn start_session(
             &self,
+            requester_conn_id: &str,
             folder_id: i64,
             agent_type: String,
             task: String,
         ) -> crate::acp::delegation::transport::AssistantActionResult {
             StubAssistant
-                .start_session(folder_id, agent_type, task)
+                .start_session(requester_conn_id, folder_id, agent_type, task)
                 .await
         }
     }

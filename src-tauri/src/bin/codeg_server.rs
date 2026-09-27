@@ -399,6 +399,11 @@ async fn async_main() -> ExitCode {
                         conn: state.db.conn.clone(),
                     }),
                     emitter: Arc::new(state.emitter.clone()),
+                    questions: Arc::new(
+                        codeg_lib::commands::assistant_tools::ManagerQuestions(
+                            Arc::new(state.connection_manager.clone_ref()),
+                        ),
+                    ),
                 },
             ),
         );
