@@ -13,6 +13,13 @@ vi.mock("@/lib/api", () => ({
 
 let prefs: SpeechPrefs = {
   input: { enabled: true, engine: "auto", language: "" },
+  output: {
+    enabled: false,
+    engine: "auto",
+    browserVoiceUri: "",
+    rate: 1,
+    autoRead: false,
+  },
 }
 vi.mock("@/lib/speech-prefs", () => ({ useSpeechPrefs: () => prefs }))
 
@@ -110,7 +117,16 @@ function renderSpeech() {
 }
 
 beforeEach(() => {
-  prefs = { input: { enabled: true, engine: "auto", language: "" } }
+  prefs = {
+    input: { enabled: true, engine: "auto", language: "" },
+    output: {
+      enabled: false,
+      engine: "auto",
+      browserVoiceUri: "",
+      rate: 1,
+      autoRead: false,
+    },
+  }
   caps = { browserStt: true, mediaCapture: true, secureContext: true }
   FakeRecognition.instances = []
   FakeRecorder.instances = []
@@ -202,7 +218,16 @@ describe("useSpeechInput - browser engine", () => {
 
 describe("useSpeechInput - cloud engine", () => {
   beforeEach(() => {
-    prefs = { input: { enabled: true, engine: "cloud", language: "de-DE" } }
+    prefs = {
+      input: { enabled: true, engine: "cloud", language: "de-DE" },
+      output: {
+        enabled: false,
+        engine: "auto",
+        browserVoiceUri: "",
+        rate: 1,
+        autoRead: false,
+      },
+    }
   })
 
   it("records, transcribes with the bare mime type and language, then inserts", async () => {

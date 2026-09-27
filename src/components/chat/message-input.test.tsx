@@ -223,6 +223,7 @@ vi.mock("./composer/use-speech-input", () => ({
 }))
 
 import enMessages from "@/i18n/messages/en.json"
+import * as speechPlayer from "@/lib/speech-player"
 import {
   resetSpeechPrefsCacheForTests,
   saveSpeechPrefs,
@@ -2501,5 +2502,70 @@ describe("MessageInput voice input", () => {
     expect(serializeDocToText(editor.state.doc)).toBe("note: <b>x</b>")
     expect(editor.getHTML()).not.toContain("<b>")
     expect(onSend).not.toHaveBeenCalled()
+  })
+})
+
+describe("MessageInput read-aloud stop triggers", () => {
+  afterEach(() => {
+    cleanup()
+    composerHandle.current = null
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+    speechPlayer.resetSpeechPlayerForTests()
+  })
+
+  async function mountWithPlayback(onSend = vi.fn()) {
+    vi.stubGlobal("speechSynthesis", {
+      getVoices: () => [],
+      speak: vi.fn(),
+      cancel: vi.fn(),
+    })
+    vi.stubGlobal(
+      "SpeechSynthesisUtterance",
+      class {
+        constructor(public text: string) {}
+      }
+    )
+    renderInput({ onSend })
+    await waitFor(() =>
+      expect(composerHandle.current?.getEditor()).toBeTruthy()
+    )
+    speechPlayer.speak("turn-1", "A reply.", {
+      engine: "browser",
+      language: "en-US",
+      labels: { codeOmitted: "", tableOmitted: "" },
+    })
+    expect(speechPlayer.getSpeechPlayerState().status).not.toBe("idle")
+    const stop = vi.spyOn(speechPlayer, "stopSpeech")
+    return { editor: composerHandle.current!.getEditor()!, stop }
+  }
+
+  it("stops reading when the user types", async () => {
+    const { editor, stop } = await mountWithPlayback()
+    act(() => {
+      editor.commands.insertContent("x")
+    })
+    expect(stop).toHaveBeenCalled()
+    expect(speechPlayer.getSpeechPlayerState().status).toBe("idle")
+  })
+
+  it("stops reading when the user sends", async () => {
+    const onSend = vi.fn()
+    const { editor, stop } = await mountWithPlayback(onSend)
+    act(() => {
+      editor.commands.insertContent("next question")
+    })
+    stop.mockClear()
+    speechPlayer.speak("turn-1", "A reply.", {
+      engine: "browser",
+      language: "en-US",
+      labels: { codeOmitted: "", tableOmitted: "" },
+    })
+    await userEvent
+      .setup()
+      .click(screen.getByTitle(enMessages.Folder.chat.messageInput.send))
+    await waitFor(() => expect(onSend).toHaveBeenCalled())
+    expect(stop).toHaveBeenCalled()
+    expect(speechPlayer.getSpeechPlayerState().status).toBe("idle")
   })
 })

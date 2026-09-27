@@ -11,6 +11,7 @@ import {
 import { useLocale } from "next-intl"
 
 import { speechGetSettings, speechTranscribe } from "@/lib/api"
+import { stopSpeech } from "@/lib/speech-player"
 import { extractAppCommandError } from "@/lib/app-error"
 import {
   detectSpeechCapabilities,
@@ -391,6 +392,8 @@ export function useSpeechInput({
   const start = useCallback(() => {
     if (busyRef.current) return
     busyRef.current = true
+    // The mic must never record the speaker.
+    stopSpeech()
     generationRef.current += 1
     const generation = generationRef.current
     const {

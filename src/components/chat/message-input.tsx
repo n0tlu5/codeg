@@ -124,6 +124,7 @@ import {
 import { textToInlineContent } from "@/components/chat/composer/plain-text-content"
 import { ComposerSpeechControl } from "@/components/chat/composer/composer-speech-button"
 import { useSpeechPrefs } from "@/lib/speech-prefs"
+import { getSpeechPlayerState, stopSpeech } from "@/lib/speech-player"
 import { isEmbeddedReferenceUri } from "@/components/chat/composer/reference-uri"
 import {
   applyExpertReference,
@@ -812,6 +813,8 @@ export function MessageInput({
   }, [skillPrefix, composerReady])
 
   const handleComposerChange = useCallback(() => {
+    // Typing means the user has moved on from the reply being read out.
+    if (getSpeechPlayerState().status !== "idle") stopSpeech()
     // The history's own writes are not edits. They must not end navigation, and
     // they must not be saved as the draft: overwriting the stored draft with a
     // recalled prompt would lose what the user had typed if they closed the tab
@@ -1534,6 +1537,7 @@ export function MessageInput({
   }, [clearAttachments, closeSlashMenu])
 
   const handleSend = useCallback(() => {
+    stopSpeech()
     // The editor stays editable while `disabled` (the agent is busy) so the user
     // can keep typing, but a plain send is blocked — only enqueue / queue-edit
     // save go through. Mirrors the legacy textarea's keydown guard.
