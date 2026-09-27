@@ -38,6 +38,7 @@
     "preferences": "Präferenzen",
     "nav": {
       "general": "Allgemein",
+      "speech": "Sprache",
       "appearance": "Darstellung",
       "agents": "Agenten",
       "mcp": "MCP",
@@ -6543,5 +6544,41 @@
         "probeFailed": "Der integrierte Browser konnte nicht bestätigen, dass er den entfernten Host über den Tunnel erreicht. Versuche es gleich noch einmal."
       }
     }
+  },
+  "SpeechSettings": {
+    "sectionTitle": "Sprache",
+    "sectionDescription": "Prompts per Stimme diktieren und den Sprachdienst konfigurieren.",
+    "loading": "Spracheinstellungen werden geladen...",
+    "loadFailed": "Spracheinstellungen konnten nicht geladen werden: {message}",
+    "inputTitle": "Spracheingabe",
+    "inputDescription": "Zeigt im Chat-Eingabefeld eine Mikrofontaste, die Sprache in Prompt-Text umwandelt.",
+    "engineLabel": "Erkennungs-Engine",
+    "engineAuto": "Automatisch",
+    "engineBrowser": "Browser",
+    "engineCloud": "Cloud",
+    "engineUsing": "Aktiv: {engine}",
+    "reasonNoMic": "Nicht verfügbar: Kein Mikrofon gefunden.",
+    "reasonInsecure": "Nicht verfügbar: Das Mikrofon benötigt eine sichere Verbindung (HTTPS oder localhost).",
+    "reasonNoEngine": "Nicht verfügbar: Dieser Browser hat keine Spracherkennung. Konfiguriere unten den Cloud-Dienst.",
+    "reasonCloudNotConfigured": "Nicht verfügbar: Für den Cloud-Dienst ist noch kein API-Schlüssel hinterlegt.",
+    "languageLabel": "Erkennungssprache",
+    "languageDescription": "Die Sprache, in der du diktierst.",
+    "languageFollowApp": "App-Sprache verwenden",
+    "languageCustom": "Eigener Tag",
+    "languageCustomPlaceholder": "BCP-47-Tag, z. B. en-GB",
+    "cloudTitle": "Cloud-Sprachdienst",
+    "cloudDescription": "Ein OpenAI-kompatibler Endpunkt. Audio wird nur gesendet, wenn die Cloud-Engine verwendet wird.",
+    "baseUrl": "Basis-URL",
+    "apiKey": "API-Schlüssel",
+    "apiKeyDescription": "Wird im Schlüsselbund des Systems gespeichert und danach nicht mehr angezeigt.",
+    "apiKeyPlaceholder": "sk-...",
+    "apiKeySaved": "Gespeichert",
+    "removeKey": "Schlüssel entfernen",
+    "keyRemoved": "API-Schlüssel entfernt",
+    "sttModel": "Sprache-zu-Text-Modell",
+    "save": "Speichern",
+    "saving": "Wird gespeichert...",
+    "saved": "Spracheinstellungen gespeichert",
+    "saveFailed": "Spracheinstellungen konnten nicht gespeichert werden: {message}"
   }
 }

@@ -38,6 +38,7 @@
     "preferences": "Preferências",
     "nav": {
       "general": "Geral",
+      "speech": "Voz",
       "appearance": "Aparência",
       "agents": "Agentes",
       "mcp": "MCP",
@@ -6543,5 +6544,41 @@
         "probeFailed": "O navegador integrado não conseguiu confirmar que alcança o host remoto pelo túnel. Tente novamente em instantes."
       }
     }
+  },
+  "SpeechSettings": {
+    "sectionTitle": "Voz",
+    "sectionDescription": "Dite prompts com a sua voz e configure o serviço de voz.",
+    "loading": "Carregando configurações de voz...",
+    "loadFailed": "Falha ao carregar as configurações de voz: {message}",
+    "inputTitle": "Entrada de voz",
+    "inputDescription": "Mostra um botão de microfone no campo do chat que transforma a fala em texto do prompt.",
+    "engineLabel": "Mecanismo de reconhecimento",
+    "engineAuto": "Automático",
+    "engineBrowser": "Navegador",
+    "engineCloud": "Nuvem",
+    "engineUsing": "Em uso: {engine}",
+    "reasonNoMic": "Indisponível: nenhum microfone encontrado.",
+    "reasonInsecure": "Indisponível: o microfone exige uma conexão segura (HTTPS ou localhost).",
+    "reasonNoEngine": "Indisponível: este navegador não tem reconhecimento de voz. Configure o serviço em nuvem abaixo.",
+    "reasonCloudNotConfigured": "Indisponível: o serviço em nuvem ainda não tem chave de API.",
+    "languageLabel": "Idioma de reconhecimento",
+    "languageDescription": "O idioma que você fala ao ditar.",
+    "languageFollowApp": "Seguir o idioma do app",
+    "languageCustom": "Tag personalizada",
+    "languageCustomPlaceholder": "Tag BCP-47, ex.: en-GB",
+    "cloudTitle": "Serviço de voz em nuvem",
+    "cloudDescription": "Um endpoint compatível com OpenAI. O áudio só é enviado quando o mecanismo em nuvem está em uso.",
+    "baseUrl": "URL base",
+    "apiKey": "Chave de API",
+    "apiKeyDescription": "Armazenada no chaveiro do sistema e nunca mais exibida após salvar.",
+    "apiKeyPlaceholder": "sk-...",
+    "apiKeySaved": "Salva",
+    "removeKey": "Remover chave",
+    "keyRemoved": "Chave de API removida",
+    "sttModel": "Modelo de fala para texto",
+    "save": "Salvar",
+    "saving": "Salvando...",
+    "saved": "Configurações de voz salvas",
+    "saveFailed": "Falha ao salvar as configurações de voz: {message}"
   }
 }

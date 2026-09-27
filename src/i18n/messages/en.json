@@ -38,6 +38,7 @@
     "preferences": "Preferences",
     "nav": {
       "general": "General",
+      "speech": "Speech",
       "appearance": "Appearance",
       "agents": "Agents",
       "mcp": "MCP",
@@ -6543,5 +6544,41 @@
         "probeFailed": "The built-in browser couldn't confirm that it reaches the remote host through the tunnel. Try again in a moment."
       }
     }
+  },
+  "SpeechSettings": {
+    "sectionTitle": "Speech",
+    "sectionDescription": "Dictate prompts with your voice and configure the speech service.",
+    "loading": "Loading speech settings...",
+    "loadFailed": "Failed to load speech settings: {message}",
+    "inputTitle": "Voice input",
+    "inputDescription": "Show a microphone button in the chat composer that turns speech into prompt text.",
+    "engineLabel": "Recognition engine",
+    "engineAuto": "Auto",
+    "engineBrowser": "Browser",
+    "engineCloud": "Cloud",
+    "engineUsing": "Using: {engine}",
+    "reasonNoMic": "Unavailable: no microphone was found.",
+    "reasonInsecure": "Unavailable: the microphone needs a secure (HTTPS or localhost) connection.",
+    "reasonNoEngine": "Unavailable: this browser has no speech recognition. Configure the cloud service below.",
+    "reasonCloudNotConfigured": "Unavailable: the cloud service has no API key yet.",
+    "languageLabel": "Recognition language",
+    "languageDescription": "The language you speak when dictating.",
+    "languageFollowApp": "Follow app language",
+    "languageCustom": "Custom tag",
+    "languageCustomPlaceholder": "BCP-47 tag, e.g. en-GB",
+    "cloudTitle": "Cloud speech service",
+    "cloudDescription": "An OpenAI-compatible endpoint. Audio is sent to it only when the Cloud engine is in use.",
+    "baseUrl": "Base URL",
+    "apiKey": "API key",
+    "apiKeyDescription": "Stored in the system keychain, never shown again after saving.",
+    "apiKeyPlaceholder": "sk-...",
+    "apiKeySaved": "Saved",
+    "removeKey": "Remove key",
+    "keyRemoved": "API key removed",
+    "sttModel": "Speech-to-text model",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Speech settings saved",
+    "saveFailed": "Failed to save speech settings: {message}"
   }
 }
