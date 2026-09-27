@@ -509,6 +509,10 @@
         "title": "カスタムスタイルの停止/再開",
         "description": "緊急脱出用: カスタム配色と CSS をすべてオフにし、再度押すと元に戻します"
       },
+      "toggle_voice_input": {
+        "title": "音声入力",
+        "description": "メッセージ欄への音声入力を開始・停止します"
+      },
       "zoom_in": {
         "title": "拡大",
         "description": "ウィンドウの表示倍率を一段階上げます"
@@ -3157,7 +3161,18 @@
         "mentionGroupAgent": "エージェント",
         "mentionGroupSession": "セッション",
         "mentionGroupCommit": "コミット",
-        "mentionGroupSkill": "スキル"
+        "mentionGroupSkill": "スキル",
+        "speechStart": "音声入力を開始",
+        "speechStop": "停止して挿入",
+        "speechTranscribing": "文字起こし中...",
+        "speechCancelHint": "Esc でキャンセル",
+        "speechMicDenied": "マイクへのアクセスが拒否されました",
+        "speechUnavailableNoEngine": "音声入力は利用できません: このブラウザは音声認識に対応していません",
+        "speechUnavailableInsecure": "音声入力には安全な接続（HTTPS または localhost）が必要です",
+        "speechUnavailableNoMic": "音声入力は利用できません: マイクが見つかりません",
+        "speechUnavailableCloud": "音声入力にはクラウドの API キーが必要です（設定 → 音声）",
+        "speechCloudAuthFailed": "音声サービスが API キーを拒否しました",
+        "speechFailed": "音声入力に失敗しました"
       },
       "messageQueue": {
         "addToQueue": "キューに追加",

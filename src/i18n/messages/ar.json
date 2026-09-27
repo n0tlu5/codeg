@@ -509,6 +509,10 @@
         "title": "إيقاف/استئناف النمط المخصص",
         "description": "مخرج طوارئ: يوقف كل الألوان المخصصة وCSS، ويعيد تفعيلها"
       },
+      "toggle_voice_input": {
+        "title": "الإدخال الصوتي",
+        "description": "بدء الإملاء في مربع الرسالة أو إيقافه"
+      },
       "zoom_in": {
         "title": "تكبير",
         "description": "اجعل النافذة أكبر بدرجة واحدة"
@@ -3157,7 +3161,18 @@
         "mentionGroupAgent": "الوكلاء",
         "mentionGroupSession": "الجلسات",
         "mentionGroupCommit": "عمليات الإيداع",
-        "mentionGroupSkill": "المهارات"
+        "mentionGroupSkill": "المهارات",
+        "speechStart": "بدء الإدخال الصوتي",
+        "speechStop": "إيقاف وإدراج",
+        "speechTranscribing": "جارٍ النسخ...",
+        "speechCancelHint": "Esc للإلغاء",
+        "speechMicDenied": "تم رفض الوصول إلى الميكروفون",
+        "speechUnavailableNoEngine": "الإدخال الصوتي غير متاح: لا يدعم هذا المتصفح التعرّف على الكلام",
+        "speechUnavailableInsecure": "يتطلب الإدخال الصوتي اتصالًا آمنًا (HTTPS أو localhost)",
+        "speechUnavailableNoMic": "الإدخال الصوتي غير متاح: لم يُعثر على ميكروفون",
+        "speechUnavailableCloud": "يتطلب الإدخال الصوتي مفتاح API سحابيًا (الإعدادات ← الصوت)",
+        "speechCloudAuthFailed": "رفضت خدمة الصوت مفتاح API",
+        "speechFailed": "فشل الإدخال الصوتي"
       },
       "messageQueue": {
         "addToQueue": "إضافة للقائمة",

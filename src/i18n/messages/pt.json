@@ -509,6 +509,10 @@
         "title": "Suspender/retomar estilo personalizado",
         "description": "Saída de emergência: desliga todas as cores e o CSS personalizados e volta a ligá-los"
       },
+      "toggle_voice_input": {
+        "title": "Entrada de voz",
+        "description": "Iniciar ou parar o ditado na caixa de mensagem"
+      },
       "zoom_in": {
         "title": "Aumentar zoom",
         "description": "Aumenta a janela em um nível"
@@ -3157,7 +3161,18 @@
         "mentionGroupAgent": "Agentes",
         "mentionGroupSession": "Sessões",
         "mentionGroupCommit": "Commits",
-        "mentionGroupSkill": "Habilidades"
+        "mentionGroupSkill": "Habilidades",
+        "speechStart": "Iniciar entrada de voz",
+        "speechStop": "Parar e inserir",
+        "speechTranscribing": "Transcrevendo...",
+        "speechCancelHint": "Esc para cancelar",
+        "speechMicDenied": "O acesso ao microfone foi negado",
+        "speechUnavailableNoEngine": "Entrada de voz indisponível: este navegador não tem reconhecimento de voz",
+        "speechUnavailableInsecure": "A entrada de voz exige uma conexão segura (HTTPS ou localhost)",
+        "speechUnavailableNoMic": "Entrada de voz indisponível: nenhum microfone encontrado",
+        "speechUnavailableCloud": "A entrada de voz precisa de uma chave de API em nuvem (Configurações → Voz)",
+        "speechCloudAuthFailed": "O serviço de voz rejeitou a chave de API",
+        "speechFailed": "Falha na entrada de voz"
       },
       "messageQueue": {
         "addToQueue": "Adicionar à fila",

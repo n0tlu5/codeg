@@ -509,6 +509,10 @@
         "title": "停用/恢復自訂樣式",
         "description": "逃生艙：一鍵關閉全部自訂配色與 CSS，再按一次恢復"
       },
+      "toggle_voice_input": {
+        "title": "語音輸入",
+        "description": "開始或停止向輸入框口述"
+      },
       "zoom_in": {
         "title": "放大",
         "description": "把視窗縮放提高一檔"
@@ -3157,7 +3161,18 @@
         "mentionGroupAgent": "智能體",
         "mentionGroupSession": "工作階段",
         "mentionGroupCommit": "提交",
-        "mentionGroupSkill": "技能"
+        "mentionGroupSkill": "技能",
+        "speechStart": "開始語音輸入",
+        "speechStop": "停止並插入",
+        "speechTranscribing": "正在轉寫...",
+        "speechCancelHint": "按 Esc 取消",
+        "speechMicDenied": "麥克風權限遭拒",
+        "speechUnavailableNoEngine": "語音輸入無法使用：此瀏覽器不支援語音辨識",
+        "speechUnavailableInsecure": "語音輸入需要安全連線（HTTPS 或 localhost）",
+        "speechUnavailableNoMic": "語音輸入無法使用：找不到麥克風",
+        "speechUnavailableCloud": "語音輸入需要雲端 API 金鑰（設定 → 語音）",
+        "speechCloudAuthFailed": "語音服務拒絕了此 API 金鑰",
+        "speechFailed": "語音輸入失敗"
       },
       "messageQueue": {
         "addToQueue": "加入佇列",

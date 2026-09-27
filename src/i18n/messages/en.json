@@ -509,6 +509,10 @@
         "title": "Suspend/resume custom style",
         "description": "Escape hatch: turns all custom colors and CSS off, and back on"
       },
+      "toggle_voice_input": {
+        "title": "Voice Input",
+        "description": "Start or stop dictating into the message box"
+      },
       "zoom_in": {
         "title": "Zoom in",
         "description": "Make the window one step larger"
@@ -3157,7 +3161,18 @@
         "mentionGroupAgent": "Agents",
         "mentionGroupSession": "Sessions",
         "mentionGroupCommit": "Commits",
-        "mentionGroupSkill": "Skills"
+        "mentionGroupSkill": "Skills",
+        "speechStart": "Start voice input",
+        "speechStop": "Stop and insert",
+        "speechTranscribing": "Transcribing...",
+        "speechCancelHint": "Esc to cancel",
+        "speechMicDenied": "Microphone access was denied",
+        "speechUnavailableNoEngine": "Voice input unavailable: this browser has no speech recognition",
+        "speechUnavailableInsecure": "Voice input needs a secure connection (HTTPS or localhost)",
+        "speechUnavailableNoMic": "Voice input unavailable: no microphone found",
+        "speechUnavailableCloud": "Voice input needs a cloud API key (Settings → Speech)",
+        "speechCloudAuthFailed": "The speech service rejected the API key",
+        "speechFailed": "Voice input failed"
       },
       "messageQueue": {
         "addToQueue": "Queue message",

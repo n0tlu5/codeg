@@ -509,6 +509,10 @@
         "title": "停用/恢复自定义样式",
         "description": "逃生舱：一键关闭全部自定义配色与 CSS，再按一次恢复"
       },
+      "toggle_voice_input": {
+        "title": "语音输入",
+        "description": "开始或停止向输入框口述"
+      },
       "zoom_in": {
         "title": "放大",
         "description": "把窗口缩放提高一档"
@@ -3157,7 +3161,18 @@
         "mentionGroupAgent": "智能体",
         "mentionGroupSession": "会话",
         "mentionGroupCommit": "提交",
-        "mentionGroupSkill": "技能"
+        "mentionGroupSkill": "技能",
+        "speechStart": "开始语音输入",
+        "speechStop": "停止并插入",
+        "speechTranscribing": "正在转写...",
+        "speechCancelHint": "按 Esc 取消",
+        "speechMicDenied": "麦克风权限被拒绝",
+        "speechUnavailableNoEngine": "语音输入不可用：此浏览器不支持语音识别",
+        "speechUnavailableInsecure": "语音输入需要安全连接（HTTPS 或 localhost）",
+        "speechUnavailableNoMic": "语音输入不可用：未找到麦克风",
+        "speechUnavailableCloud": "语音输入需要云端 API 密钥（设置 → 语音）",
+        "speechCloudAuthFailed": "语音服务拒绝了该 API 密钥",
+        "speechFailed": "语音输入失败"
       },
       "messageQueue": {
         "addToQueue": "加入队列",
