@@ -1066,6 +1066,19 @@ mod tauri_app {
                                 browser_tools_config.clone(),
                             ),
                         ),
+                        std::sync::Arc::new(
+                            crate::commands::assistant_tools::DbAssistantToolAccess {
+                                manager: std::sync::Arc::new(cm_state.clone_ref()),
+                                db: std::sync::Arc::new(db::AppDatabase {
+                                    conn: db_conn.clone(),
+                                }),
+                                emitter: std::sync::Arc::new(
+                                    crate::web::event_bridge::EventEmitter::Tauri(
+                                        app.handle().clone(),
+                                    ),
+                                ),
+                            },
+                        ),
                     );
                     // Bind through the service handle rather than a bare
                     // `listener.run` spawn: it keeps the bind error and the
