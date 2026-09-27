@@ -4860,7 +4860,7 @@ async fn send_new_session_capturing_models(
 /// (`feedback_tool_available`, a registered delegation token pi can never use).
 /// `supports_mcp` stays `true` for pi (session/new tolerates the field), so this
 /// is a separate, narrower gate. Gate codeg-mcp injection on it.
-fn agent_delivers_wire_mcp(agent_type: AgentType) -> bool {
+pub(crate) fn agent_delivers_wire_mcp(agent_type: AgentType) -> bool {
     !matches!(agent_type, AgentType::Pi)
 }
 
@@ -5125,6 +5125,8 @@ struct CompanionFeatureFlags {
     /// it still injects the companion so a task session always has its reporting
     /// tools.
     tasks: bool,
+    /// `assistant` session tools.
+    assistant: bool,
     /// `create_automation`, gated by the chat-authoring setting.
     automations: bool,
     /// `create_work_task`, gated by the chat-authoring setting.
@@ -5155,7 +5157,8 @@ fn companion_features_arg(flags: CompanionFeatureFlags) -> Option<String> {
     if flags.ask {
         features.push("ask");
     }
-    if flags.sessions {
+    // The assistant's tools build on `get_session_info`, so it always gets sessions.
+    if flags.sessions || flags.assistant {
         features.push("sessions");
     }
     if flags.tasks {
@@ -5176,6 +5179,9 @@ fn companion_features_arg(flags: CompanionFeatureFlags) -> Option<String> {
     if flags.browser && flags.browser_eval {
         features.push("browser_eval");
     }
+    if flags.assistant {
+        features.push("assistant");
+    }
     if features.is_empty() {
         return None;
     }
@@ -5192,12 +5198,14 @@ struct CompanionInjection {
     delegation_enabled: bool,
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn inject_codeg_mcp(
     servers: &mut Vec<McpServer>,
     injection: &DelegationInjection,
     parent_connection_id: &str,
     working_dir: &Path,
     tasks_enabled: bool,
+    assistant_enabled: bool,
     host_tools: HostToolsPolicy,
 ) -> Option<CompanionInjection> {
     inject_codeg_mcp_with_binary_locator(
@@ -5206,18 +5214,21 @@ async fn inject_codeg_mcp(
         parent_connection_id,
         working_dir,
         tasks_enabled,
+        assistant_enabled,
         host_tools,
         locate_codeg_mcp_binary,
     )
     .await
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn inject_codeg_mcp_with_binary_locator<F>(
     servers: &mut Vec<McpServer>,
     injection: &DelegationInjection,
     parent_connection_id: &str,
     working_dir: &Path,
     tasks_enabled: bool,
+    assistant_enabled: bool,
     host_tools: HostToolsPolicy,
     locate_binary: F,
 ) -> Option<CompanionInjection>
@@ -5281,6 +5292,7 @@ where
         browser: cfg!(feature = "tauri-runtime") && injection.browser.is_enabled().await,
         browser_eval: cfg!(feature = "tauri-runtime")
             && injection.browser.is_eval_enabled().await,
+        assistant: assistant_enabled,
     };
     // `None` (no feature enabled) short-circuits BEFORE the binary lookup, the
     // token registration and the server append: there is no companion to launch,
@@ -6134,12 +6146,15 @@ async fn run_connection(
                     // task_progress / task_complete tool group.
                     let tasks_enabled =
                         { state.read().await.owner_window_label == "work_task" };
+                    let assistant_enabled =
+                        { state.read().await.owner_window_label == crate::commands::assistant::ASSISTANT_OWNER_LABEL };
                     inject_codeg_mcp(
                         &mut mcp_servers,
                         inj,
                         &conn_id,
                         &cwd,
                         tasks_enabled,
+                        assistant_enabled,
                         host_tools,
                     )
                     .await
@@ -26508,6 +26523,7 @@ mod tests {
             "parent-conn",
             std::path::Path::new("/tmp"),
             false,
+            false,
             HostToolsPolicy::Default,
         )
         .await;
@@ -26667,6 +26683,11 @@ mod tests {
         // The browser group too — a user who only shares browser tabs still
         // gets a companion.
         assert_eq!(only(|f| f.browser = true), Some("browser".to_string()));
+        // Assistant injects assistant and sessions.
+        assert_eq!(
+            only(|f| f.assistant = true),
+            Some("sessions,assistant".to_string())
+        );
         // All on → comma-joined, in the order the companion parses.
         assert_eq!(
             companion_features_arg(CompanionFeatureFlags {
@@ -26679,9 +26700,10 @@ mod tests {
                 taskboard: true,
                 browser: true,
                 browser_eval: true,
+                assistant: true,
             }),
             Some(
-                "delegation,feedback,ask,sessions,tasks,automations,taskboard,browser,browser_eval"
+                "delegation,feedback,ask,sessions,tasks,automations,taskboard,browser,browser_eval,assistant"
                     .to_string()
             )
         );

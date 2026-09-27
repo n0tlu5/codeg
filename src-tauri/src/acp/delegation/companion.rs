@@ -181,6 +181,9 @@ pub struct CompanionFeatures {
     /// tab can picture, and this is not one of them. Never on with `browser`
     /// off; the parent will not emit it, and `allows_tool` requires both.
     pub browser_eval: bool,
+    /// Workspace-assistant tools — injected only into the backend-owned
+    /// assistant connection.
+    pub assistant: bool,
 }
 
 impl CompanionFeatures {
@@ -202,6 +205,7 @@ impl CompanionFeatures {
                 taskboard: false,
                 browser: false,
                 browser_eval: false,
+                assistant: false,
             };
         };
         let mut f = Self {
@@ -214,6 +218,7 @@ impl CompanionFeatures {
             taskboard: false,
             browser: false,
             browser_eval: false,
+            assistant: false,
         };
         for tok in s.split(',').map(str::trim).filter(|t| !t.is_empty()) {
             match tok {
@@ -226,6 +231,7 @@ impl CompanionFeatures {
                 "taskboard" => f.taskboard = true,
                 "browser" => f.browser = true,
                 "browser_eval" => f.browser_eval = true,
+                "assistant" => f.assistant = true,
                 _ => {}
             }
         }
@@ -2587,6 +2593,7 @@ mod tests {
             taskboard: false,
             browser: false,
             browser_eval: false,
+            assistant: false,
         })
     }
 
@@ -3180,6 +3187,7 @@ mod tests {
         taskboard: false,
         browser: false,
     browser_eval: false,
+    assistant: false,
     };
     const BOTH: CompanionFeatures = CompanionFeatures {
         delegation: true,
@@ -3191,6 +3199,7 @@ mod tests {
         taskboard: false,
         browser: false,
     browser_eval: false,
+    assistant: false,
     };
     const ASK_ONLY: CompanionFeatures = CompanionFeatures {
         delegation: false,
@@ -3202,6 +3211,7 @@ mod tests {
         taskboard: false,
         browser: false,
     browser_eval: false,
+    assistant: false,
     };
     const SESSIONS_ONLY: CompanionFeatures = CompanionFeatures {
         delegation: false,
@@ -3213,6 +3223,7 @@ mod tests {
         taskboard: false,
         browser: false,
     browser_eval: false,
+    assistant: false,
     };
 
     fn list_tool_names(action: LineAction) -> Vec<String> {
@@ -3241,6 +3252,9 @@ mod tests {
         assert!(!ask.delegation && !ask.feedback && ask.ask);
         let sessions = CompanionFeatures::parse(Some("sessions"));
         assert!(!sessions.delegation && !sessions.feedback && !sessions.ask && sessions.sessions);
+        let assistant = CompanionFeatures::parse(Some("assistant"));
+        assert!(assistant.assistant && !assistant.delegation && !assistant.sessions);
+        assert!(!def.assistant && !all.assistant);
         // Empty string → nothing enabled.
         let none = CompanionFeatures::parse(Some(""));
         assert!(!none.delegation && !none.feedback && !none.ask && !none.sessions);
@@ -3553,6 +3567,7 @@ mod tests {
         taskboard: false,
         browser: false,
     browser_eval: false,
+    assistant: false,
     };
     const TASKBOARD_ONLY: CompanionFeatures = CompanionFeatures {
         delegation: false,
@@ -3564,6 +3579,7 @@ mod tests {
         taskboard: true,
         browser: false,
     browser_eval: false,
+    assistant: false,
     };
 
     /// The two authoring groups gate independently: enabling one must not
@@ -4087,12 +4103,14 @@ mod tests {
         taskboard: false,
         browser: true,
         browser_eval: false,
+        assistant: false,
     };
 
     /// The browser group with `browser_eval` on top, which is the only way
     /// that tool is ever advertised.
     const BROWSER_WITH_EVAL: CompanionFeatures = CompanionFeatures {
         browser_eval: true,
+        assistant: false,
         ..BROWSER_ONLY
     };
 
@@ -4148,6 +4166,7 @@ mod tests {
         const EVAL_WITHOUT_GROUP: CompanionFeatures = CompanionFeatures {
             browser: false,
             browser_eval: true,
+            assistant: false,
             ..BROWSER_ONLY
         };
         let list = r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#;

@@ -31,6 +31,8 @@ import type {
   SpeechCloudSettings,
   SpeechAudio,
   SpeechCloudSettingsView,
+  AssistantSettings,
+  AssistantSession,
   ForgeChangeDetail,
   ForgeChangedFileList,
   ForgeComment,
@@ -5994,4 +5996,22 @@ export async function speechSynthesize(
   speed: number
 ): Promise<SpeechAudio> {
   return getTransport().call<SpeechAudio>("speech_synthesize", { text, speed })
+}
+
+export async function assistantEnsure(): Promise<AssistantSession> {
+  return getTransport().call<AssistantSession>("assistant_ensure", {})
+}
+
+export async function assistantReset(): Promise<void> {
+  return getTransport().call<void>("assistant_reset", {})
+}
+
+export async function assistantGetSettings(): Promise<AssistantSettings> {
+  return getTransport().call<AssistantSettings>("assistant_get_settings", {})
+}
+
+export async function assistantSetSettings(
+  settings: AssistantSettings
+): Promise<void> {
+  return getTransport().call<void>("assistant_set_settings", { settings })
 }

@@ -802,6 +802,11 @@ impl ConnectionManager {
     /// open). Silently no-ops if the connection is missing or already
     /// in a terminal state — touch must never resurrect a dead
     /// connection or contend with the spawn/disconnect paths.
+        pub async fn get_owner_window_label(&self, conn_id: &str) -> Option<String> {
+        let connections = self.connections.lock().await;
+        connections.get(conn_id).map(|c| c.owner_window_label.clone())
+    }
+
     pub async fn touch(&self, conn_id: &str) -> bool {
         let state_arc = {
             let connections = self.connections.lock().await;

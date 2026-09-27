@@ -58,3 +58,4 @@ pub mod windows;
 pub mod speech;
 pub mod work_task;
 pub mod workspace_state;
+pub mod assistant;

@@ -5090,3 +5090,17 @@ export interface SpeechAudio {
   audioBase64: string
   mimeType: string
 }
+
+export interface AssistantSettings {
+  agentType: AgentType | null
+  allowSessionControl: boolean
+  allowPermissionAnswers: boolean
+}
+
+export interface AssistantSession {
+  connectionId: string
+  conversationId: number
+  folderId: number
+  agentType: AgentType
+  primer: string | null
+}

@@ -36,6 +36,7 @@ pub mod science;
 pub mod session_info;
 pub mod system_settings;
 pub mod terminal;
+pub mod assistant;
 pub mod token_usage;
 mod upload_jail;
 pub mod version_control;
