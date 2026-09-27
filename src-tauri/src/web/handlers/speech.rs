@@ -1,8 +1,8 @@
 use crate::app_error::AppCommandError;
 use crate::app_state::AppState;
 use crate::commands::speech::{
-    speech_get_settings_core, speech_transcribe_core, speech_update_settings_core,
-    SpeechCloudSettings, SpeechCloudSettingsView,
+    speech_get_settings_core, speech_synthesize_core, speech_transcribe_core,
+    speech_update_settings_core, SpeechAudio, SpeechCloudSettings, SpeechCloudSettingsView,
 };
 use axum::{extract::Extension, Json};
 use serde::Deserialize;
@@ -21,6 +21,13 @@ pub struct TranscribeParams {
     pub audio_base64: String,
     pub mime_type: String,
     pub language: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SynthesizeParams {
+    pub text: String,
+    pub speed: f32,
 }
 
 pub async fn speech_get_settings(
@@ -50,4 +57,12 @@ pub async fn speech_transcribe(
     )
     .await?;
     Ok(Json(text))
+}
+
+pub async fn speech_synthesize(
+    Extension(state): Extension<Arc<AppState>>,
+    Json(params): Json<SynthesizeParams>,
+) -> Result<Json<SpeechAudio>, AppCommandError> {
+    let audio = speech_synthesize_core(&state.db.conn, params.text, params.speed).await?;
+    Ok(Json(audio))
 }

@@ -29,6 +29,7 @@ import type {
   DeepSeekCatalogModel,
   DeepSeekModelCatalog,
   SpeechCloudSettings,
+  SpeechAudio,
   SpeechCloudSettingsView,
   ForgeChangeDetail,
   ForgeChangedFileList,
@@ -5986,4 +5987,11 @@ export async function speechTranscribe(
     mimeType,
     language,
   })
+}
+
+export async function speechSynthesize(
+  text: string,
+  speed: number
+): Promise<SpeechAudio> {
+  return getTransport().call<SpeechAudio>("speech_synthesize", { text, speed })
 }

@@ -40,6 +40,16 @@ pub struct SpeechCloudSettingsView {
     pub api_key_set: bool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpeechAudio {
+    pub audio_base64: String,
+    pub mime_type: String,
+}
+
+/// The OpenAI speech endpoint's documented input ceiling.
+const MAX_SYNTHESIS_CHARS: usize = 4096;
+
 #[cfg(not(test))]
 mod store {
     pub fn get_secret(key: &str) -> Result<Option<String>, String> {
@@ -203,9 +213,7 @@ pub async fn speech_transcribe_core(
     };
     let filename = format!("speech.{}", ext);
 
-    let api_key = store::get_secret(SPEECH_CLOUD_API_KEY)
-        .map_err(|e| AppCommandError::io_error("Failed to read the speech API key").with_detail(e))?
-        .ok_or_else(|| AppCommandError::configuration_missing("Speech cloud API key not set"))?;
+    let api_key = read_api_key()?;
 
     let settings = get_settings_core(conn).await;
 
@@ -234,6 +242,30 @@ pub async fn speech_transcribe_core(
         .await
         .map_err(|e| AppCommandError::network(e.to_string()))?;
 
+    let res = ensure_upstream_success(res).await?;
+
+    #[derive(Deserialize)]
+    struct TranscriptionResponse {
+        text: String,
+    }
+
+    let json: TranscriptionResponse = res
+        .json()
+        .await
+        .map_err(|e| AppCommandError::network(e.to_string()))?;
+
+    Ok(json.text.trim().to_string())
+}
+
+fn read_api_key() -> Result<String, AppCommandError> {
+    store::get_secret(SPEECH_CLOUD_API_KEY)
+        .map_err(|e| AppCommandError::io_error("Failed to read the speech API key").with_detail(e))?
+        .ok_or_else(|| AppCommandError::configuration_missing("Speech cloud API key not set"))
+}
+
+async fn ensure_upstream_success(
+    res: reqwest::Response,
+) -> Result<reqwest::Response, AppCommandError> {
     let status = res.status();
     if status == reqwest::StatusCode::UNAUTHORIZED || status == reqwest::StatusCode::FORBIDDEN {
         return Err(AppCommandError::authentication_failed(
@@ -252,18 +284,69 @@ pub async fn speech_transcribe_core(
             status, truncated
         )));
     }
+    Ok(res)
+}
 
-    #[derive(Deserialize)]
-    struct TranscriptionResponse {
-        text: String,
+pub async fn speech_synthesize_core(
+    conn: &sea_orm::DatabaseConnection,
+    text: String,
+    speed: f32,
+) -> Result<SpeechAudio, AppCommandError> {
+    if text.trim().is_empty() {
+        return Err(AppCommandError::invalid_input("Text is empty"));
     }
+    if text.chars().count() > MAX_SYNTHESIS_CHARS {
+        return Err(AppCommandError::invalid_input(format!(
+            "Text exceeds {MAX_SYNTHESIS_CHARS} characters"
+        )));
+    }
+    let speed = if speed.is_finite() {
+        speed.clamp(0.25, 4.0)
+    } else {
+        1.0
+    };
 
-    let json: TranscriptionResponse = res
-        .json()
+    let api_key = read_api_key()?;
+    let settings = get_settings_core(conn).await;
+    let url = format!("{}/audio/speech", settings.base_url);
+
+    let res = get_client()
+        .post(&url)
+        .bearer_auth(api_key)
+        .json(&serde_json::json!({
+            "model": settings.tts_model,
+            "voice": settings.tts_voice,
+            "input": text,
+            "response_format": "mp3",
+            "speed": speed,
+        }))
+        .send()
         .await
         .map_err(|e| AppCommandError::network(e.to_string()))?;
 
-    Ok(json.text.trim().to_string())
+    let res = ensure_upstream_success(res).await?;
+
+    let mime_type = res
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(';').next())
+        .map(|v| v.trim().to_string())
+        .filter(|v| v.starts_with("audio/"))
+        .unwrap_or_else(|| "audio/mpeg".to_string());
+
+    let bytes = res
+        .bytes()
+        .await
+        .map_err(|e| AppCommandError::network(e.to_string()))?;
+    if bytes.is_empty() {
+        return Err(AppCommandError::network("Speech service returned no audio"));
+    }
+
+    Ok(SpeechAudio {
+        audio_base64: general_purpose::STANDARD.encode(&bytes),
+        mime_type,
+    })
 }
 
 #[cfg(feature = "tauri-runtime")]
@@ -293,6 +376,16 @@ pub async fn speech_transcribe(
     language: Option<String>,
 ) -> Result<String, AppCommandError> {
     speech_transcribe_core(&db.conn, audio_base64, mime_type, language).await
+}
+
+#[cfg(feature = "tauri-runtime")]
+#[cfg_attr(feature = "tauri-runtime", tauri::command)]
+pub async fn speech_synthesize(
+    db: State<'_, AppDatabase>,
+    text: String,
+    speed: f32,
+) -> Result<SpeechAudio, AppCommandError> {
+    speech_synthesize_core(&db.conn, text, speed).await
 }
 
 #[cfg(test)]
@@ -473,8 +566,43 @@ mod tests {
             .into_response()
     }
 
+    /// Answers with WAV bytes only for the exact body the default settings
+    /// should produce, so a wrong model, voice, format or unclamped speed
+    /// surfaces as a 500 in the test.
+    async fn mock_speech_handler(
+        headers: HeaderMap,
+        axum::Json(body): axum::Json<serde_json::Value>,
+    ) -> impl IntoResponse {
+        if headers
+            .get("authorization")
+            .is_none_or(|a| a != "Bearer test-key")
+        {
+            return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
+        }
+        let expected = serde_json::json!({
+            "model": "tts-1",
+            "voice": "alloy",
+            "input": "Hello there.",
+            "response_format": "mp3",
+            "speed": 4.0,
+        });
+        if body != expected {
+            return (StatusCode::INTERNAL_SERVER_ERROR, body.to_string()).into_response();
+        }
+        (
+            StatusCode::OK,
+            [(axum::http::header::CONTENT_TYPE, "audio/wav")],
+            MOCK_WAV.to_vec(),
+        )
+            .into_response()
+    }
+
+    const MOCK_WAV: &[u8] = b"RIFF\x24\0\0\0WAVEfmt ";
+
     async fn start_mock_server() -> String {
-        let app = Router::new().route("/v1/audio/transcriptions", post(mock_transcription_handler));
+        let app = Router::new()
+            .route("/v1/audio/transcriptions", post(mock_transcription_handler))
+            .route("/v1/audio/speech", post(mock_speech_handler));
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();
         tokio::spawn(async move {
@@ -579,5 +707,59 @@ mod tests {
             .await
             .unwrap_err();
         assert!(matches!(err.code, AppErrorCode::NetworkError));
+    }
+
+    async fn configure_mock(db: &crate::db::AppDatabase, key: &str) {
+        let settings = SpeechCloudSettings {
+            base_url: format!("{}/v1", start_mock_server().await),
+            ..Default::default()
+        };
+        speech_update_settings_core(&db.conn, settings, Some(key.to_string()))
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_synthesis_success_clamps_speed_and_round_trips_audio() {
+        let _guard = KEY_LOCK.lock().await;
+        let db = setup_test_db().await;
+        configure_mock(&db, "test-key").await;
+
+        let audio = speech_synthesize_core(&db.conn, "Hello there.".to_string(), 9.0)
+            .await
+            .unwrap();
+        assert_eq!(audio.mime_type, "audio/wav");
+        assert_eq!(
+            general_purpose::STANDARD
+                .decode(audio.audio_base64)
+                .unwrap(),
+            MOCK_WAV
+        );
+    }
+
+    #[tokio::test]
+    async fn test_synthesis_unauthorized() {
+        let _guard = KEY_LOCK.lock().await;
+        let db = setup_test_db().await;
+        configure_mock(&db, "wrong-key").await;
+
+        let err = speech_synthesize_core(&db.conn, "Hello there.".to_string(), 1.0)
+            .await
+            .unwrap_err();
+        assert!(matches!(err.code, AppErrorCode::AuthenticationFailed));
+    }
+
+    #[tokio::test]
+    async fn test_synthesis_rejects_empty_and_oversized_text() {
+        let db = setup_test_db().await;
+        let err = speech_synthesize_core(&db.conn, "  ".to_string(), 1.0)
+            .await
+            .unwrap_err();
+        assert!(matches!(err.code, AppErrorCode::InvalidInput));
+
+        let err = speech_synthesize_core(&db.conn, "a".repeat(4097), 1.0)
+            .await
+            .unwrap_err();
+        assert!(matches!(err.code, AppErrorCode::InvalidInput));
     }
 }

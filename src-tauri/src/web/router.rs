@@ -617,6 +617,10 @@ pub fn build_router(
                 .layer(DefaultBodyLimit::max(36 * 1024 * 1024)),
         )
         .route(
+            "/speech_synthesize",
+            post(handlers::speech::speech_synthesize),
+        )
+        .route(
             "/config_sync_get_settings",
             post(handlers::config_sync::config_sync_get_settings),
         )

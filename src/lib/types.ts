@@ -5085,3 +5085,8 @@ export interface SpeechCloudSettingsView {
   settings: SpeechCloudSettings
   apiKeySet: boolean
 }
+
+export interface SpeechAudio {
+  audioBase64: string
+  mimeType: string
+}

@@ -1979,6 +1979,7 @@ mod tauri_app {
                 speech::speech_get_settings,
                 speech::speech_update_settings,
                 speech::speech_transcribe,
+                speech::speech_synthesize,
                 config_sync::config_sync_update_settings,
                 config_sync::config_sync_get_state,
                 config_sync::config_sync_test_connection,
