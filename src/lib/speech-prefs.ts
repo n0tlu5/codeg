@@ -1,8 +1,7 @@
 "use client"
 
 /**
- * Speech preferences: speech-to-text input configuration including engine choice
- * and language selection.
+ * Speech preferences: dictation (input) and read-aloud (output) settings.
  *
  * Stored in localStorage rather than the backend because speech input configuration
  * (microphone access, engine preferences) is per-device. Uses the same reactive
@@ -26,9 +25,22 @@ export interface SpeechInputPrefs {
   language: string
 }
 
+export interface SpeechOutputPrefs {
+  enabled: boolean
+  engine: SpeechEnginePreference
+  /** `SpeechSynthesisVoice.voiceURI`; empty means the default voice for the language. */
+  browserVoiceUri: string
+  rate: number
+  autoRead: boolean
+}
+
 export interface SpeechPrefs {
   input: SpeechInputPrefs
+  output: SpeechOutputPrefs
 }
+
+export const MIN_SPEECH_RATE = 0.5
+export const MAX_SPEECH_RATE = 2
 
 export const DEFAULT_SPEECH_PREFS: SpeechPrefs = {
   input: {
@@ -36,12 +48,76 @@ export const DEFAULT_SPEECH_PREFS: SpeechPrefs = {
     engine: "auto",
     language: "",
   },
+  output: {
+    enabled: false,
+    engine: "auto",
+    browserVoiceUri: "",
+    rate: 1,
+    autoRead: false,
+  },
+}
+
+function defaultPrefs(): SpeechPrefs {
+  return {
+    input: { ...DEFAULT_SPEECH_PREFS.input },
+    output: { ...DEFAULT_SPEECH_PREFS.output },
+  }
 }
 
 function isSpeechEnginePreference(
   value: unknown
 ): value is SpeechEnginePreference {
   return value === "auto" || value === "browser" || value === "cloud"
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function parseInput(raw: unknown): SpeechInputPrefs {
+  const defaults = DEFAULT_SPEECH_PREFS.input
+  const source = asRecord(raw)
+  if (!source) return { ...defaults }
+  return {
+    enabled:
+      typeof source.enabled === "boolean" ? source.enabled : defaults.enabled,
+    engine: isSpeechEnginePreference(source.engine)
+      ? source.engine
+      : defaults.engine,
+    language:
+      typeof source.language === "string" ? source.language : defaults.language,
+  }
+}
+
+export function clampSpeechRate(rate: number): number {
+  return Math.min(MAX_SPEECH_RATE, Math.max(MIN_SPEECH_RATE, rate))
+}
+
+function parseOutput(raw: unknown): SpeechOutputPrefs {
+  const defaults = DEFAULT_SPEECH_PREFS.output
+  const source = asRecord(raw)
+  if (!source) return { ...defaults }
+  return {
+    enabled:
+      typeof source.enabled === "boolean" ? source.enabled : defaults.enabled,
+    engine: isSpeechEnginePreference(source.engine)
+      ? source.engine
+      : defaults.engine,
+    browserVoiceUri:
+      typeof source.browserVoiceUri === "string"
+        ? source.browserVoiceUri
+        : defaults.browserVoiceUri,
+    rate:
+      typeof source.rate === "number" && Number.isFinite(source.rate)
+        ? clampSpeechRate(source.rate)
+        : defaults.rate,
+    autoRead:
+      typeof source.autoRead === "boolean"
+        ? source.autoRead
+        : defaults.autoRead,
+  }
 }
 
 /**
@@ -51,51 +127,31 @@ function isSpeechEnginePreference(
  * discarding the whole preference set.
  */
 export function parseSpeechPrefs(raw: unknown): SpeechPrefs {
-  const defaults = DEFAULT_SPEECH_PREFS
-  if (!raw || typeof raw !== "object") {
-    return { input: { ...defaults.input } }
-  }
-  const source = raw as Record<string, unknown>
-
-  const rawInput = source.input
-  if (!rawInput || typeof rawInput !== "object") {
-    return { input: { ...defaults.input } }
-  }
-  const inputSource = rawInput as Record<string, unknown>
-
+  const source = asRecord(raw)
   return {
-    input: {
-      enabled:
-        typeof inputSource.enabled === "boolean"
-          ? inputSource.enabled
-          : defaults.input.enabled,
-      engine: isSpeechEnginePreference(inputSource.engine)
-        ? inputSource.engine
-        : defaults.input.engine,
-      language:
-        typeof inputSource.language === "string"
-          ? inputSource.language
-          : defaults.input.language,
-    },
+    input: parseInput(source?.input),
+    output: parseOutput(source?.output),
   }
 }
 
 export function loadSpeechPrefs(): SpeechPrefs {
-  const defaults = DEFAULT_SPEECH_PREFS
-  if (typeof window === "undefined") {
-    return { input: { ...defaults.input } }
-  }
+  if (typeof window === "undefined") return defaultPrefs()
   try {
     const raw = localStorage.getItem(PREFS_KEY)
-    if (!raw) return { input: { ...defaults.input } }
+    if (!raw) return defaultPrefs()
     return parseSpeechPrefs(JSON.parse(raw))
   } catch {
-    return { input: { ...defaults.input } }
+    return defaultPrefs()
   }
 }
 
-export function saveSpeechPrefs(prefs: SpeechPrefs): void {
+/** Saves a partial update; omitted sections keep their current values. */
+export function saveSpeechPrefs(update: {
+  input?: SpeechInputPrefs
+  output?: SpeechOutputPrefs
+}): void {
   if (typeof window === "undefined") return
+  const prefs = parseSpeechPrefs({ ...loadSpeechPrefs(), ...update })
   try {
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs))
   } catch {

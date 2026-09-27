@@ -1,8 +1,11 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import {
   detectSpeechCapabilities,
+  hasBrowserTts,
   resolveInputEngine,
+  resolveOutputEngine,
+  waitForVoices,
   resolveSpeechLanguage,
   type SpeechCapabilities,
 } from "./speech-capabilities"
@@ -229,4 +232,62 @@ describe("resolveSpeechLanguage mapping", () => {
     expect(resolveSpeechLanguage("", "it")).toBe("it")
     expect(resolveSpeechLanguage("", "")).toBe("en-US")
   })
+})
+
+describe("read-aloud capabilities", () => {
+  const voice = { voiceURI: "v", lang: "en-US" } as SpeechSynthesisVoice
+
+  it("reports browser TTS only when voices exist", () => {
+    expect(hasBrowserTts(undefined)).toBe(false)
+    expect(hasBrowserTts({ getVoices: () => [] })).toBe(false)
+    expect(hasBrowserTts({ getVoices: () => [voice] })).toBe(true)
+  })
+
+  it("waitForVoices resolves on voiceschanged", async () => {
+    let voices: SpeechSynthesisVoice[] = []
+    const target = new EventTarget()
+    const synth = {
+      getVoices: () => voices,
+      addEventListener: target.addEventListener.bind(target),
+      removeEventListener: target.removeEventListener.bind(target),
+    } as unknown as SpeechSynthesis
+    const pending = waitForVoices(synth, 60_000)
+    voices = [voice]
+    target.dispatchEvent(new Event("voiceschanged"))
+    await expect(pending).resolves.toEqual([voice])
+  })
+
+  it("waitForVoices resolves empty after the timeout", async () => {
+    vi.useFakeTimers()
+    try {
+      const target = new EventTarget()
+      const synth = {
+        getVoices: () => [],
+        addEventListener: target.addEventListener.bind(target),
+        removeEventListener: target.removeEventListener.bind(target),
+      } as unknown as SpeechSynthesis
+      const pending = waitForVoices(synth, 1500)
+      vi.advanceTimersByTime(1500)
+      await expect(pending).resolves.toEqual([])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it.each([
+    ["browser", true, false, { engine: "browser" }],
+    ["browser", false, true, { engine: null, reason: "no-engine" }],
+    ["cloud", true, true, { engine: "cloud" }],
+    ["cloud", true, false, { engine: null, reason: "cloud-not-configured" }],
+    ["auto", true, true, { engine: "browser" }],
+    ["auto", false, true, { engine: "cloud" }],
+    ["auto", false, false, { engine: null, reason: "cloud-not-configured" }],
+  ] as const)(
+    "resolveOutputEngine(%s, tts=%s, cloud=%s)",
+    (engine, browserTts, cloudConfigured, expected) => {
+      expect(
+        resolveOutputEngine({ engine }, { browserTts }, cloudConfigured)
+      ).toEqual(expected)
+    }
+  )
 })

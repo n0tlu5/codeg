@@ -23,6 +23,13 @@ describe("speech preferences", () => {
         engine: "auto",
         language: "",
       },
+      output: {
+        enabled: false,
+        engine: "auto",
+        browserVoiceUri: "",
+        rate: 1,
+        autoRead: false,
+      },
     })
     expect(loadSpeechPrefs()).toEqual(DEFAULT_SPEECH_PREFS)
   })
@@ -40,9 +47,51 @@ describe("speech preferences", () => {
         engine: "cloud" as const,
         language: "zh-CN",
       },
+      output: {
+        enabled: true,
+        engine: "browser" as const,
+        browserVoiceUri: "Google US English",
+        rate: 1.5,
+        autoRead: true,
+      },
     }
     saveSpeechPrefs(custom)
     expect(loadSpeechPrefs()).toEqual(custom)
+  })
+
+  it("saving one section keeps the other", () => {
+    saveSpeechPrefs({
+      output: { ...DEFAULT_SPEECH_PREFS.output, enabled: true, rate: 1.25 },
+    })
+    saveSpeechPrefs({
+      input: { enabled: true, engine: "browser", language: "" },
+    })
+    const loaded = loadSpeechPrefs()
+    expect(loaded.input.enabled).toBe(true)
+    expect(loaded.output).toEqual({
+      ...DEFAULT_SPEECH_PREFS.output,
+      enabled: true,
+      rate: 1.25,
+    })
+  })
+
+  it("parses output per field and clamps the rate", () => {
+    expect(
+      parseSpeechPrefs({
+        output: {
+          enabled: 1,
+          engine: "loud",
+          browserVoiceUri: null,
+          rate: "fast",
+          autoRead: "yes",
+        },
+      }).output
+    ).toEqual(DEFAULT_SPEECH_PREFS.output)
+    expect(parseSpeechPrefs({ output: { rate: 9 } }).output.rate).toBe(2)
+    expect(parseSpeechPrefs({ output: { rate: 0.1 } }).output.rate).toBe(0.5)
+    expect(parseSpeechPrefs({ output: { rate: Number.NaN } }).output.rate).toBe(
+      1
+    )
   })
 
   it("falls back per-field for invalid or missing values", () => {

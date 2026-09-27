@@ -145,6 +145,62 @@ export function resolveInputEngine(
   return { engine: null, reason: "no-engine" }
 }
 
+export type OutputEngineResolution =
+  | { engine: "browser" | "cloud" }
+  | { engine: null; reason: "no-engine" | "cloud-not-configured" }
+
+type VoiceSource = Pick<SpeechSynthesis, "getVoices"> &
+  Partial<Pick<SpeechSynthesis, "addEventListener" | "removeEventListener">>
+
+function currentSynth(): VoiceSource | undefined {
+  return typeof window !== "undefined" ? window.speechSynthesis : undefined
+}
+
+export function hasBrowserTts(synth: VoiceSource | undefined = currentSynth()) {
+  return Boolean(synth) && synth!.getVoices().length > 0
+}
+
+/** Chromium fills `getVoices()` asynchronously; resolves once voices exist or the timeout passes. */
+export function waitForVoices(
+  synth: VoiceSource | undefined = currentSynth(),
+  timeoutMs = 1500
+): Promise<SpeechSynthesisVoice[]> {
+  if (!synth) return Promise.resolve([])
+  const voices = synth.getVoices()
+  if (voices.length > 0 || !synth.addEventListener) {
+    return Promise.resolve(voices)
+  }
+  return new Promise((resolve) => {
+    const finish = () => {
+      clearTimeout(timer)
+      synth.removeEventListener?.("voiceschanged", finish)
+      resolve(synth.getVoices())
+    }
+    const timer = setTimeout(finish, timeoutMs)
+    synth.addEventListener!("voiceschanged", finish)
+  })
+}
+
+export function resolveOutputEngine(
+  pref: { engine: "auto" | "browser" | "cloud" },
+  caps: { browserTts: boolean },
+  cloudConfigured: boolean
+): OutputEngineResolution {
+  if (pref.engine === "browser") {
+    return caps.browserTts
+      ? { engine: "browser" }
+      : { engine: null, reason: "no-engine" }
+  }
+  if (pref.engine === "cloud") {
+    return cloudConfigured
+      ? { engine: "cloud" }
+      : { engine: null, reason: "cloud-not-configured" }
+  }
+  if (caps.browserTts) return { engine: "browser" }
+  if (cloudConfigured) return { engine: "cloud" }
+  return { engine: null, reason: "cloud-not-configured" }
+}
+
 export function resolveSpeechLanguage(
   pref: SpeechInputPrefs | { language?: string } | string,
   uiLocale: string
