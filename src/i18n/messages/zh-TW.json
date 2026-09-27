@@ -3460,7 +3460,13 @@
         "completedAt": "完成時間",
         "jumpToPreviousUserMessage": "跳轉到上一條使用者訊息",
         "showMore": "展開",
-        "showLess": "收合"
+        "showLess": "收合",
+        "readAloud": "朗讀",
+        "stopReading": "停止朗讀",
+        "readAloudLoading": "正在準備音訊...",
+        "readAloudFailed": "無法朗讀此回覆",
+        "speechCodeOmitted": "已省略程式碼區塊",
+        "speechTableOmitted": "已省略表格"
       },
       "liveTurnStats": {
         "thinking": "思考中...",
@@ -6579,6 +6585,17 @@
     "save": "儲存",
     "saving": "正在儲存...",
     "saved": "語音設定已儲存",
-    "saveFailed": "儲存語音設定失敗：{message}"
+    "saveFailed": "儲存語音設定失敗：{message}",
+    "outputTitle": "朗讀",
+    "outputDescription": "在代理回覆上顯示揚聲器按鈕，用於朗讀回覆。",
+    "outputEngineLabel": "語音引擎",
+    "reasonNoVoices": "無法使用：此瀏覽器沒有語音。請在下方設定雲端服務。",
+    "voiceLabel": "聲音",
+    "voiceDefault": "該語言的預設聲音",
+    "rateLabel": "語速",
+    "autoReadLabel": "自動朗讀回覆",
+    "autoReadDescription": "在目前分頁中自動朗讀每則完成的回覆。",
+    "ttsModel": "文字轉語音模型",
+    "ttsVoice": "文字轉語音聲音"
   }
 }

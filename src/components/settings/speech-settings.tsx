@@ -14,8 +14,12 @@ import {
   KeyRound,
   Languages,
   Link,
+  Gauge,
   Loader2,
   Mic,
+  Speaker,
+  Volume2,
+  Wand2,
 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
@@ -36,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { speechGetSettings, speechUpdateSettings } from "@/lib/api"
 import { toErrorMessage } from "@/lib/app-error"
@@ -43,8 +48,13 @@ import {
   LOCALE_TO_BCP47,
   detectSpeechCapabilities,
   resolveInputEngine,
+  resolveOutputEngine,
+  resolveSpeechLanguage,
+  waitForVoices,
 } from "@/lib/speech-capabilities"
 import {
+  MAX_SPEECH_RATE,
+  MIN_SPEECH_RATE,
   saveSpeechPrefs,
   useSpeechPrefs,
   type SpeechEnginePreference,
@@ -52,6 +62,7 @@ import {
 import type { SpeechCloudSettings } from "@/lib/types"
 
 const LANGUAGE_FOLLOW_APP = "follow-app"
+const VOICE_DEFAULT = "default"
 const LANGUAGE_CUSTOM = "custom"
 const LANGUAGE_TAGS = Array.from(new Set(Object.values(LOCALE_TO_BCP47)))
 
@@ -59,6 +70,11 @@ const REASON_KEYS = {
   "no-mic": "reasonNoMic",
   "insecure-context": "reasonInsecure",
   "no-engine": "reasonNoEngine",
+  "cloud-not-configured": "reasonCloudNotConfigured",
+} as const
+
+const OUTPUT_REASON_KEYS = {
+  "no-engine": "reasonNoVoices",
   "cloud-not-configured": "reasonCloudNotConfigured",
 } as const
 
@@ -86,6 +102,7 @@ export function SpeechSettings() {
   const [apiKeyDraft, setApiKeyDraft] = useState("")
   const [saving, setSaving] = useState(false)
   const [customLanguageMode, setCustomLanguageMode] = useState(false)
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[] | null>(null)
 
   const mounted = useSyncExternalStore(subscribeNever, onClient, onServer)
   const caps = useMemo(
@@ -116,10 +133,59 @@ export function SpeechSettings() {
   const input = prefs.input
   const updateInput = useCallback(
     (patch: Partial<typeof input>) => {
-      saveSpeechPrefs({ ...prefs, input: { ...input, ...patch } })
+      saveSpeechPrefs({ input: { ...input, ...patch } })
     },
-    [input, prefs]
+    [input]
   )
+
+  const output = prefs.output
+  const updateOutput = useCallback(
+    (patch: Partial<typeof output>) => {
+      saveSpeechPrefs({ output: { ...output, ...patch } })
+    },
+    [output]
+  )
+
+  const outputOn = output.enabled
+  useEffect(() => {
+    if (!outputOn) return
+    let alive = true
+    void waitForVoices().then((list) => {
+      if (alive) setVoices(list)
+    })
+    return () => {
+      alive = false
+    }
+  }, [outputOn])
+
+  const speechLanguage = resolveSpeechLanguage(input, locale)
+  const sortedVoices = useMemo(() => {
+    if (!voices) return []
+    const base = speechLanguage.toLowerCase().split("-")[0]
+    const matches = (voice: SpeechSynthesisVoice) =>
+      voice.lang.toLowerCase().split("-")[0] === base
+    return [
+      ...voices.filter(matches),
+      ...voices.filter((voice) => !matches(voice)),
+    ]
+  }, [speechLanguage, voices])
+
+  const outputStatus = useMemo(() => {
+    if (voices === null) return null
+    const resolution = resolveOutputEngine(
+      output,
+      { browserTts: voices.length > 0 },
+      apiKeySet
+    )
+    if (resolution.engine === null) {
+      return t(OUTPUT_REASON_KEYS[resolution.reason])
+    }
+    return t("engineUsing", {
+      engine: t(
+        resolution.engine === "browser" ? "engineBrowser" : "engineCloud"
+      ),
+    })
+  }, [apiKeySet, output, t, voices])
 
   const engineStatus = useMemo(() => {
     if (!caps) return null
@@ -292,6 +358,135 @@ export function SpeechSettings() {
         </SettingsSection>
 
         <SettingsSection
+          icon={Volume2}
+          title={t("outputTitle")}
+          description={t("outputDescription")}
+          htmlFor="speech-output-enabled"
+          control={
+            <Switch
+              id="speech-output-enabled"
+              aria-label={t("outputTitle")}
+              checked={output.enabled}
+              onCheckedChange={(enabled) =>
+                updateOutput(
+                  enabled ? { enabled } : { enabled, autoRead: false }
+                )
+              }
+            />
+          }
+        >
+          {output.enabled && (
+            <SettingCard>
+              <SettingRow
+                icon={Cpu}
+                title={t("outputEngineLabel")}
+                description={
+                  outputStatus ? (
+                    <span data-testid="speech-output-status">
+                      {outputStatus}
+                    </span>
+                  ) : undefined
+                }
+                htmlFor="speech-output-engine"
+                control={
+                  <Select
+                    value={output.engine}
+                    onValueChange={(engine) =>
+                      updateOutput({ engine: engine as SpeechEnginePreference })
+                    }
+                  >
+                    <SelectTrigger
+                      id="speech-output-engine"
+                      size="sm"
+                      className="w-40 bg-background text-xs"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="end">
+                      <SelectItem value="auto">{t("engineAuto")}</SelectItem>
+                      <SelectItem value="browser">
+                        {t("engineBrowser")}
+                      </SelectItem>
+                      <SelectItem value="cloud">{t("engineCloud")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                }
+              />
+              {output.engine !== "cloud" && sortedVoices.length > 0 && (
+                <SettingRow
+                  icon={Speaker}
+                  title={t("voiceLabel")}
+                  htmlFor="speech-output-voice"
+                  control={
+                    <Select
+                      value={output.browserVoiceUri || VOICE_DEFAULT}
+                      onValueChange={(uri) =>
+                        updateOutput({
+                          browserVoiceUri: uri === VOICE_DEFAULT ? "" : uri,
+                        })
+                      }
+                    >
+                      <SelectTrigger
+                        id="speech-output-voice"
+                        size="sm"
+                        className="w-48 bg-background text-xs"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent align="end">
+                        <SelectItem value={VOICE_DEFAULT}>
+                          {t("voiceDefault")}
+                        </SelectItem>
+                        {sortedVoices.map((voice) => (
+                          <SelectItem
+                            key={voice.voiceURI}
+                            value={voice.voiceURI}
+                          >
+                            {voice.name} ({voice.lang})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  }
+                />
+              )}
+              <SettingRow
+                icon={Gauge}
+                title={t("rateLabel")}
+                control={
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {output.rate.toFixed(2)}x
+                  </span>
+                }
+              >
+                <Slider
+                  aria-label={t("rateLabel")}
+                  min={MIN_SPEECH_RATE}
+                  max={MAX_SPEECH_RATE}
+                  step={0.05}
+                  value={[output.rate]}
+                  onValueChange={([rate]) => updateOutput({ rate })}
+                />
+              </SettingRow>
+              <SettingRow
+                icon={Wand2}
+                title={t("autoReadLabel")}
+                description={t("autoReadDescription")}
+                htmlFor="speech-output-auto-read"
+                control={
+                  <Switch
+                    id="speech-output-auto-read"
+                    aria-label={t("autoReadLabel")}
+                    checked={output.autoRead}
+                    onCheckedChange={(autoRead) => updateOutput({ autoRead })}
+                  />
+                }
+              />
+            </SettingCard>
+          )}
+        </SettingsSection>
+
+        <SettingsSection
           icon={Cloud}
           title={t("cloudTitle")}
           description={t("cloudDescription")}
@@ -360,6 +555,36 @@ export function SpeechSettings() {
                   value={cloud.sttModel}
                   onChange={(e) =>
                     setCloud({ ...cloud, sttModel: e.target.value })
+                  }
+                  spellCheck={false}
+                />
+              </SettingRow>
+              <SettingRow
+                icon={Volume2}
+                title={t("ttsModel")}
+                htmlFor="speech-cloud-tts-model"
+              >
+                <Input
+                  id="speech-cloud-tts-model"
+                  className="h-8 text-xs"
+                  value={cloud.ttsModel}
+                  onChange={(e) =>
+                    setCloud({ ...cloud, ttsModel: e.target.value })
+                  }
+                  spellCheck={false}
+                />
+              </SettingRow>
+              <SettingRow
+                icon={Speaker}
+                title={t("ttsVoice")}
+                htmlFor="speech-cloud-tts-voice"
+              >
+                <Input
+                  id="speech-cloud-tts-voice"
+                  className="h-8 text-xs"
+                  value={cloud.ttsVoice}
+                  onChange={(e) =>
+                    setCloud({ ...cloud, ttsVoice: e.target.value })
                   }
                   spellCheck={false}
                 />

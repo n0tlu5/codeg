@@ -3460,7 +3460,13 @@
         "completedAt": "완료 시각",
         "jumpToPreviousUserMessage": "이전 사용자 메시지로 이동",
         "showMore": "더보기",
-        "showLess": "접기"
+        "showLess": "접기",
+        "readAloud": "소리 내어 읽기",
+        "stopReading": "읽기 중지",
+        "readAloudLoading": "오디오 준비 중...",
+        "readAloudFailed": "이 답변을 읽을 수 없습니다",
+        "speechCodeOmitted": "코드 블록 생략",
+        "speechTableOmitted": "표 생략"
       },
       "liveTurnStats": {
         "thinking": "생각 중...",
@@ -6579,6 +6585,17 @@
     "save": "저장",
     "saving": "저장 중...",
     "saved": "음성 설정이 저장되었습니다",
-    "saveFailed": "음성 설정을 저장하지 못했습니다: {message}"
+    "saveFailed": "음성 설정을 저장하지 못했습니다: {message}",
+    "outputTitle": "소리 내어 읽기",
+    "outputDescription": "에이전트 답변에 스피커 버튼을 표시해 답변을 읽어 줍니다.",
+    "outputEngineLabel": "음성 엔진",
+    "reasonNoVoices": "사용 불가: 이 브라우저에 음성이 없습니다. 아래에서 클라우드 서비스를 구성하세요.",
+    "voiceLabel": "음성",
+    "voiceDefault": "언어 기본 음성",
+    "rateLabel": "읽기 속도",
+    "autoReadLabel": "답변 자동 읽기",
+    "autoReadDescription": "활성 탭에서 완료된 답변을 자동으로 읽어 줍니다.",
+    "ttsModel": "텍스트 음성 변환 모델",
+    "ttsVoice": "텍스트 음성 변환 음성"
   }
 }

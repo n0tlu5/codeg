@@ -180,3 +180,72 @@ describe("SpeechSettings", () => {
     )
   })
 })
+
+describe("SpeechSettings read aloud", () => {
+  const m = enMessages.SpeechSettings
+
+  afterEach(() => vi.unstubAllGlobals())
+
+  it("enables read aloud and shows its controls", async () => {
+    vi.stubGlobal("speechSynthesis", {
+      getVoices: () => [
+        { voiceURI: "fr", name: "Amelie", lang: "fr-FR" },
+        { voiceURI: "en", name: "Samantha", lang: "en-US" },
+      ],
+    })
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(await screen.findByLabelText(m.outputTitle))
+    expect(getSpeechPrefs().output.enabled).toBe(true)
+    expect(await screen.findByTestId("speech-output-status")).toHaveTextContent(
+      "Using: Browser"
+    )
+    expect(screen.getByLabelText(m.rateLabel)).toBeInTheDocument()
+    expect(screen.getByLabelText(m.voiceLabel)).toBeInTheDocument()
+
+    await user.click(screen.getByLabelText(m.autoReadLabel))
+    expect(getSpeechPrefs().output.autoRead).toBe(true)
+
+    await user.click(screen.getByLabelText(m.outputTitle))
+    expect(getSpeechPrefs().output).toMatchObject({
+      enabled: false,
+      autoRead: false,
+    })
+  })
+
+  it("reports missing voices and key when nothing can speak", async () => {
+    vi.stubGlobal("speechSynthesis", undefined)
+    saveSpeechPrefs({
+      output: {
+        enabled: true,
+        engine: "auto",
+        browserVoiceUri: "",
+        rate: 1,
+        autoRead: false,
+      },
+    })
+    renderPage()
+    expect(await screen.findByTestId("speech-output-status")).toHaveTextContent(
+      m.reasonCloudNotConfigured
+    )
+    expect(screen.queryByLabelText(m.voiceLabel)).not.toBeInTheDocument()
+  })
+
+  it("saves the TTS model and voice with the cloud settings", async () => {
+    updateSettings.mockResolvedValue(view(false))
+    const user = userEvent.setup()
+    renderPage()
+    const model = await screen.findByLabelText(m.ttsModel)
+    await user.clear(model)
+    await user.type(model, "gpt-4o-mini-tts")
+    const voice = screen.getByLabelText(m.ttsVoice)
+    await user.clear(voice)
+    await user.type(voice, "nova")
+    await user.click(screen.getByRole("button", { name: m.save }))
+    await waitFor(() => expect(updateSettings).toHaveBeenCalled())
+    expect(updateSettings.mock.calls[0][0]).toMatchObject({
+      ttsModel: "gpt-4o-mini-tts",
+      ttsVoice: "nova",
+    })
+  })
+})

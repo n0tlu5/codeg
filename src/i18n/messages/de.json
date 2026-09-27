@@ -3460,7 +3460,13 @@
         "completedAt": "Abgeschlossen um",
         "jumpToPreviousUserMessage": "Zur Benutzernachricht springen",
         "showMore": "Mehr anzeigen",
-        "showLess": "Weniger anzeigen"
+        "showLess": "Weniger anzeigen",
+        "readAloud": "Vorlesen",
+        "stopReading": "Vorlesen beenden",
+        "readAloudLoading": "Audio wird vorbereitet...",
+        "readAloudFailed": "Diese Antwort konnte nicht vorgelesen werden",
+        "speechCodeOmitted": "Codeblock ausgelassen",
+        "speechTableOmitted": "Tabelle ausgelassen"
       },
       "liveTurnStats": {
         "thinking": "Denkt nach...",
@@ -6579,6 +6585,17 @@
     "save": "Speichern",
     "saving": "Wird gespeichert...",
     "saved": "Spracheinstellungen gespeichert",
-    "saveFailed": "Spracheinstellungen konnten nicht gespeichert werden: {message}"
+    "saveFailed": "Spracheinstellungen konnten nicht gespeichert werden: {message}",
+    "outputTitle": "Vorlesen",
+    "outputDescription": "Zeigt bei Agent-Antworten eine Lautsprecher-Schaltfläche zum Vorlesen.",
+    "outputEngineLabel": "Sprachausgabe",
+    "reasonNoVoices": "Nicht verfügbar: Dieser Browser hat keine Stimmen. Konfiguriere unten den Cloud-Dienst.",
+    "voiceLabel": "Stimme",
+    "voiceDefault": "Standardstimme der Sprache",
+    "rateLabel": "Sprechgeschwindigkeit",
+    "autoReadLabel": "Antworten automatisch vorlesen",
+    "autoReadDescription": "Liest jede fertige Antwort im aktiven Tab vor.",
+    "ttsModel": "Text-to-Speech-Modell",
+    "ttsVoice": "Text-to-Speech-Stimme"
   }
 }

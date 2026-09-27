@@ -3460,7 +3460,13 @@
         "completedAt": "Completado a las",
         "jumpToPreviousUserMessage": "Ir al mensaje del usuario",
         "showMore": "Mostrar más",
-        "showLess": "Mostrar menos"
+        "showLess": "Mostrar menos",
+        "readAloud": "Leer en voz alta",
+        "stopReading": "Dejar de leer",
+        "readAloudLoading": "Preparando audio...",
+        "readAloudFailed": "No se pudo leer esta respuesta en voz alta",
+        "speechCodeOmitted": "Bloque de código omitido",
+        "speechTableOmitted": "Tabla omitida"
       },
       "liveTurnStats": {
         "thinking": "Pensando...",
@@ -6579,6 +6585,17 @@
     "save": "Guardar",
     "saving": "Guardando...",
     "saved": "Ajustes de voz guardados",
-    "saveFailed": "No se pudieron guardar los ajustes de voz: {message}"
+    "saveFailed": "No se pudieron guardar los ajustes de voz: {message}",
+    "outputTitle": "Leer en voz alta",
+    "outputDescription": "Muestra un botón de altavoz en las respuestas del agente para leerlas.",
+    "outputEngineLabel": "Motor de voz",
+    "reasonNoVoices": "No disponible: este navegador no tiene voces. Configura el servicio en la nube abajo.",
+    "voiceLabel": "Voz",
+    "voiceDefault": "Voz predeterminada del idioma",
+    "rateLabel": "Velocidad de lectura",
+    "autoReadLabel": "Leer respuestas automáticamente",
+    "autoReadDescription": "Lee en voz alta cada respuesta terminada en la pestaña activa.",
+    "ttsModel": "Modelo de texto a voz",
+    "ttsVoice": "Voz de texto a voz"
   }
 }

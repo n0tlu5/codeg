@@ -3460,7 +3460,13 @@
         "completedAt": "完了時刻",
         "jumpToPreviousUserMessage": "前のユーザーメッセージへ",
         "showMore": "もっと見る",
-        "showLess": "折りたたむ"
+        "showLess": "折りたたむ",
+        "readAloud": "読み上げ",
+        "stopReading": "読み上げを停止",
+        "readAloudLoading": "音声を準備中...",
+        "readAloudFailed": "この返信を読み上げられませんでした",
+        "speechCodeOmitted": "コードブロックは省略",
+        "speechTableOmitted": "表は省略"
       },
       "liveTurnStats": {
         "thinking": "考え中...",
@@ -6579,6 +6585,17 @@
     "save": "保存",
     "saving": "保存中...",
     "saved": "音声設定を保存しました",
-    "saveFailed": "音声設定の保存に失敗しました: {message}"
+    "saveFailed": "音声設定の保存に失敗しました: {message}",
+    "outputTitle": "読み上げ",
+    "outputDescription": "エージェントの返信にスピーカーボタンを表示し、読み上げます。",
+    "outputEngineLabel": "音声エンジン",
+    "reasonNoVoices": "利用不可：このブラウザーには音声がありません。下のクラウドサービスを設定してください。",
+    "voiceLabel": "音声",
+    "voiceDefault": "言語の既定の音声",
+    "rateLabel": "読み上げ速度",
+    "autoReadLabel": "返信を自動で読み上げ",
+    "autoReadDescription": "アクティブなタブで完了した返信を自動で読み上げます。",
+    "ttsModel": "音声合成モデル",
+    "ttsVoice": "音声合成ボイス"
   }
 }

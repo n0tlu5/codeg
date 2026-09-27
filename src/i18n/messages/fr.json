@@ -3460,7 +3460,13 @@
         "completedAt": "Terminé à",
         "jumpToPreviousUserMessage": "Aller au message utilisateur",
         "showMore": "Afficher plus",
-        "showLess": "Afficher moins"
+        "showLess": "Afficher moins",
+        "readAloud": "Lire à voix haute",
+        "stopReading": "Arrêter la lecture",
+        "readAloudLoading": "Préparation de l'audio...",
+        "readAloudFailed": "Impossible de lire cette réponse à voix haute",
+        "speechCodeOmitted": "Bloc de code omis",
+        "speechTableOmitted": "Tableau omis"
       },
       "liveTurnStats": {
         "thinking": "Réflexion...",
@@ -6579,6 +6585,17 @@
     "save": "Enregistrer",
     "saving": "Enregistrement...",
     "saved": "Paramètres vocaux enregistrés",
-    "saveFailed": "Échec de l'enregistrement des paramètres vocaux : {message}"
+    "saveFailed": "Échec de l'enregistrement des paramètres vocaux : {message}",
+    "outputTitle": "Lecture à voix haute",
+    "outputDescription": "Affiche un bouton haut-parleur sur les réponses de l'agent pour les lire.",
+    "outputEngineLabel": "Moteur vocal",
+    "reasonNoVoices": "Indisponible : ce navigateur n'a pas de voix. Configurez le service cloud ci-dessous.",
+    "voiceLabel": "Voix",
+    "voiceDefault": "Voix par défaut de la langue",
+    "rateLabel": "Vitesse de lecture",
+    "autoReadLabel": "Lire les réponses automatiquement",
+    "autoReadDescription": "Lit à voix haute chaque réponse terminée dans l'onglet actif.",
+    "ttsModel": "Modèle de synthèse vocale",
+    "ttsVoice": "Voix de synthèse vocale"
   }
 }

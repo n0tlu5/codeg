@@ -3460,7 +3460,13 @@
         "completedAt": "وقت الإنجاز",
         "jumpToPreviousUserMessage": "الانتقال إلى رسالة المستخدم",
         "showMore": "عرض المزيد",
-        "showLess": "طي"
+        "showLess": "طي",
+        "readAloud": "قراءة بصوت عالٍ",
+        "stopReading": "إيقاف القراءة",
+        "readAloudLoading": "جارٍ تجهيز الصوت...",
+        "readAloudFailed": "تعذّرت قراءة هذا الرد بصوت عالٍ",
+        "speechCodeOmitted": "تم حذف كتلة التعليمات البرمجية",
+        "speechTableOmitted": "تم حذف الجدول"
       },
       "liveTurnStats": {
         "thinking": "جارٍ التفكير...",
@@ -6579,6 +6585,17 @@
     "save": "حفظ",
     "saving": "جارٍ الحفظ...",
     "saved": "تم حفظ إعدادات الصوت",
-    "saveFailed": "تعذّر حفظ إعدادات الصوت: {message}"
+    "saveFailed": "تعذّر حفظ إعدادات الصوت: {message}",
+    "outputTitle": "القراءة بصوت عالٍ",
+    "outputDescription": "إظهار زر مكبّر صوت على ردود الوكيل لقراءتها.",
+    "outputEngineLabel": "محرك الصوت",
+    "reasonNoVoices": "غير متاح: لا توجد أصوات في هذا المتصفح. اضبط الخدمة السحابية أدناه.",
+    "voiceLabel": "الصوت",
+    "voiceDefault": "الصوت الافتراضي للغة",
+    "rateLabel": "سرعة القراءة",
+    "autoReadLabel": "قراءة الردود تلقائيًا",
+    "autoReadDescription": "قراءة كل رد مكتمل في علامة التبويب النشطة بصوت عالٍ.",
+    "ttsModel": "نموذج تحويل النص إلى كلام",
+    "ttsVoice": "صوت تحويل النص إلى كلام"
   }
 }
