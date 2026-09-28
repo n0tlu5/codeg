@@ -43,6 +43,23 @@ let generation = 0
 let audio: HTMLAudioElement | null = null
 const objectUrls = new Set<string>()
 const listeners = new Set<() => void>()
+const drainListeners = new Set<() => void>()
+
+interface SpeechStream {
+  id: string
+  run: number
+  options: SpeakOptions
+  engine: "browser" | "cloud" | null
+  queue: string[]
+  ended: boolean
+  /** Browser: utterances handed to speechSynthesis and not finished yet. */
+  pending: number
+  /** Cloud: a fetch/play loop is running. */
+  busy: boolean
+  prefetch: Promise<string | null> | null
+}
+
+let stream: SpeechStream | null = null
 
 function setState(next: SpeechPlayerState) {
   if (next.playingId === state.playingId && next.status === state.status) {
@@ -93,6 +110,7 @@ export function stopSpeech(): void {
     audio.load()
   }
   revokeAll()
+  stream = null
   setState(IDLE)
 }
 
@@ -293,9 +311,166 @@ export function maybeAutoRead(
   return true
 }
 
+/**
+ * Live replies: segments arrive while the agent is still writing. A stream
+ * plays its segments in order and fires the drained listeners once, after
+ * `endSpeechStream` and the last segment. `speak`, `stopSpeech` and a new
+ * stream end it without a drained notification.
+ */
+export function beginSpeechStream(id: string, options: SpeakOptions): void {
+  stopSpeech()
+  const current: SpeechStream = {
+    id,
+    run: generation,
+    options,
+    engine: options.engine ?? null,
+    queue: [],
+    ended: false,
+    pending: 0,
+    busy: false,
+    prefetch: null,
+  }
+  stream = current
+  setState({ playingId: id, status: "loading" })
+  if (current.engine) return
+  resolvePlaybackEngine().then(
+    (resolution) => {
+      if (stream !== current) return
+      if (resolution.engine === null) {
+        stopSpeech()
+        options.onError?.(
+          resolution.reason === "cloud-not-configured"
+            ? "not-configured"
+            : "unavailable"
+        )
+        return
+      }
+      current.engine = resolution.engine
+      pump(current)
+    },
+    (error: unknown) => {
+      if (stream !== current) return
+      stopSpeech()
+      options.onError?.(classify(error))
+    }
+  )
+}
+
+export function enqueueSpeech(id: string, text: string): void {
+  const current = stream
+  if (!current || current.id !== id || current.ended || !text.trim()) return
+  current.queue.push(text)
+  pump(current)
+}
+
+export function endSpeechStream(id: string): void {
+  const current = stream
+  if (!current || current.id !== id) return
+  current.ended = true
+  pump(current)
+}
+
+export function onSpeechDrained(listener: () => void): () => void {
+  drainListeners.add(listener)
+  return () => {
+    drainListeners.delete(listener)
+  }
+}
+
+function markStreamPlaying(current: SpeechStream) {
+  if (stream === current) setState({ playingId: current.id, status: "playing" })
+}
+
+function pump(current: SpeechStream) {
+  if (stream !== current || current.engine === null) return
+  if (current.engine === "browser") {
+    while (current.queue.length > 0) {
+      speakStreamSegment(current, current.queue.shift() as string)
+    }
+    if (current.pending > 0) return
+  } else {
+    if (current.busy) return
+    if (current.queue.length > 0) {
+      current.busy = true
+      void playCloudStream(current)
+      return
+    }
+  }
+  if (!current.ended) return
+  stream = null
+  setState(IDLE)
+  for (const listener of [...drainListeners]) listener()
+}
+
+function speakStreamSegment(current: SpeechStream, text: string) {
+  const synth = window.speechSynthesis
+  const { rate, browserVoiceUri } = getSpeechPrefs().output
+  const { language } = current.options
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = language
+  utterance.rate = rate
+  const voice = pickVoice(synth.getVoices(), browserVoiceUri, language)
+  if (voice) utterance.voice = voice
+  utterance.onstart = () => markStreamPlaying(current)
+  utterance.onend = () => {
+    if (stream !== current) return
+    current.pending -= 1
+    pump(current)
+  }
+  utterance.onerror = (event) => {
+    if (stream !== current) return
+    if (event.error === "interrupted" || event.error === "canceled") return
+    stopSpeech()
+    current.options.onError?.("failed")
+  }
+  current.pending += 1
+  synth.speak(utterance)
+}
+
+async function playCloudStream(current: SpeechStream) {
+  const { rate } = getSpeechPrefs().output
+  audio ??= new Audio()
+  const player = audio
+  const take = () => {
+    const text = current.queue.shift()
+    if (text === undefined) return null
+    const task = fetchChunk(text, rate, current.run)
+    task.catch(() => {})
+    return task
+  }
+  try {
+    let next = current.prefetch ?? take()
+    current.prefetch = null
+    while (next) {
+      const url = await next
+      if (url === null || stream !== current) return
+      current.prefetch = take()
+      await new Promise<void>((resolve, reject) => {
+        player.onended = () => resolve()
+        player.onerror = () => reject(new Error("audio playback failed"))
+        player.src = url
+        player.play().then(() => markStreamPlaying(current), reject)
+      })
+      URL.revokeObjectURL(url)
+      objectUrls.delete(url)
+      if (stream !== current) return
+      next = current.prefetch ?? take()
+      current.prefetch = null
+    }
+  } catch (error) {
+    if (stream !== current) return
+    stopSpeech()
+    current.options.onError?.(classify(error))
+    return
+  }
+  current.busy = false
+  pump(current)
+}
+
 export function resetSpeechPlayerForTests(): void {
   stopSpeech()
   audio = null
   listeners.clear()
+  drainListeners.clear()
   state = IDLE
 }

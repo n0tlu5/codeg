@@ -8,8 +8,12 @@ vi.mock("@/lib/api", () => ({
 }))
 
 import {
+  beginSpeechStream,
+  endSpeechStream,
+  enqueueSpeech,
   getSpeechPlayerState,
   maybeAutoRead,
+  onSpeechDrained,
   resetSpeechPlayerForTests,
   speak,
   stopSpeech,
@@ -353,5 +357,158 @@ describe("maybeAutoRead", () => {
     expect(maybeAutoRead(ctx, "All done.", browser)).toBe(true)
     expect(synth.queue.map((u) => u.text)).toEqual(["All done."])
     expect(getSpeechPlayerState().playingId).toBe("auto:tab-1")
+  })
+})
+
+describe("streaming", () => {
+  it("speaks browser segments in order and drains once after the end", () => {
+    const drained = vi.fn()
+    const unsubscribe = onSpeechDrained(drained)
+    beginSpeechStream("turn-1", browser)
+    enqueueSpeech("turn-1", "First sentence.")
+    enqueueSpeech("turn-1", "Second sentence.")
+    expect(synth.queue.map((u) => u.text)).toEqual([
+      "First sentence.",
+      "Second sentence.",
+    ])
+
+    synth.queue[0].onstart?.()
+    expect(getSpeechPlayerState()).toEqual({
+      playingId: "turn-1",
+      status: "playing",
+    })
+    synth.queue[0].onend?.()
+    endSpeechStream("turn-1")
+    expect(drained).not.toHaveBeenCalled()
+
+    synth.queue[1].onend?.()
+    expect(drained).toHaveBeenCalledOnce()
+    expect(getSpeechPlayerState().status).toBe("idle")
+    unsubscribe()
+  })
+
+  it("drains immediately when the stream ends with nothing queued", () => {
+    const drained = vi.fn()
+    onSpeechDrained(drained)
+    beginSpeechStream("turn-1", browser)
+    endSpeechStream("turn-1")
+    expect(drained).toHaveBeenCalledOnce()
+  })
+
+  it("ignores segments and ends for a stale stream id", () => {
+    const drained = vi.fn()
+    onSpeechDrained(drained)
+    beginSpeechStream("turn-1", browser)
+    beginSpeechStream("turn-2", browser)
+    enqueueSpeech("turn-1", "Stale.")
+    endSpeechStream("turn-1")
+    expect(synth.queue).toEqual([])
+    expect(drained).not.toHaveBeenCalled()
+  })
+
+  it("stopSpeech mid-stream clears the queue and never drains", () => {
+    const drained = vi.fn()
+    onSpeechDrained(drained)
+    beginSpeechStream("turn-1", browser)
+    enqueueSpeech("turn-1", "One.")
+    enqueueSpeech("turn-1", "Two.")
+    const [first] = synth.queue
+
+    stopSpeech()
+    expect(synth.cancel).toHaveBeenCalled()
+    first.onend?.()
+    endSpeechStream("turn-1")
+    enqueueSpeech("turn-1", "Three.")
+
+    expect(synth.queue).toEqual([])
+    expect(drained).not.toHaveBeenCalled()
+    expect(getSpeechPlayerState().status).toBe("idle")
+  })
+
+  it("speak during a stream ends it without draining", () => {
+    const drained = vi.fn()
+    onSpeechDrained(drained)
+    beginSpeechStream("turn-1", browser)
+    enqueueSpeech("turn-1", "Streaming.")
+    const [streamed] = synth.queue
+
+    speak("msg-1", "A saved reply.", browser)
+    streamed.onend?.()
+    endSpeechStream("turn-1")
+
+    expect(drained).not.toHaveBeenCalled()
+    expect(getSpeechPlayerState().playingId).toBe("msg-1")
+  })
+
+  it("keeps a drained listener across stops and later streams", () => {
+    const drained = vi.fn()
+    onSpeechDrained(drained)
+    beginSpeechStream("turn-1", browser)
+    stopSpeech()
+    beginSpeechStream("turn-2", browser)
+    endSpeechStream("turn-2")
+    expect(drained).toHaveBeenCalledOnce()
+  })
+
+  it("lets a drained listener start the next stream", () => {
+    const next = vi.fn(() => {
+      beginSpeechStream("turn-2", browser)
+      enqueueSpeech("turn-2", "Queued follow-up.")
+    })
+    const unsubscribe = onSpeechDrained(next)
+    beginSpeechStream("turn-1", browser)
+    endSpeechStream("turn-1")
+    unsubscribe()
+
+    expect(next).toHaveBeenCalledOnce()
+    expect(synth.queue.map((u) => u.text)).toEqual(["Queued follow-up."])
+    expect(getSpeechPlayerState().playingId).toBe("turn-2")
+  })
+
+  it("prefetches the next cloud segment and revokes each URL", async () => {
+    const fetches = [
+      deferred<typeof audioPayload>(),
+      deferred<typeof audioPayload>(),
+    ]
+    synthesize
+      .mockReturnValueOnce(fetches[0].promise)
+      .mockReturnValueOnce(fetches[1].promise)
+    const drained = vi.fn()
+    onSpeechDrained(drained)
+    beginSpeechStream("turn-1", cloud)
+    enqueueSpeech("turn-1", "First.")
+    enqueueSpeech("turn-1", "Second.")
+    endSpeechStream("turn-1")
+    expect(synthesize).toHaveBeenCalledTimes(1)
+
+    fetches[0].resolve(audioPayload)
+    await waitForState(() => getSpeechPlayerState().status === "playing")
+    const [player] = FakeAudio.instances
+    expect(player.played).toEqual(["blob:1"])
+    expect(synthesize).toHaveBeenCalledTimes(2)
+    expect(synthesize.mock.calls[1][0]).toBe("Second.")
+
+    fetches[1].resolve(audioPayload)
+    const secondPlay = new Promise<void>((resolve) => {
+      player.play.mockImplementationOnce(() => {
+        player.played.push(player.src)
+        resolve()
+        return Promise.resolve()
+      })
+    })
+    player.finish()
+    await secondPlay
+    expect(player.played).toEqual(["blob:1", "blob:2"])
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:1")
+    expect(drained).not.toHaveBeenCalled()
+
+    const done = new Promise<void>((resolve) =>
+      drained.mockImplementation(resolve)
+    )
+    player.finish()
+    await done
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:2")
+    expect(drained).toHaveBeenCalledOnce()
+    expect(getSpeechPlayerState().status).toBe("idle")
   })
 })
