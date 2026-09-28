@@ -9,17 +9,21 @@ import {
 } from "react"
 import {
   AudioLines,
+  Bot,
   Cloud,
   Cpu,
+  Gauge,
   KeyRound,
   Languages,
   Link,
-  Gauge,
   Loader2,
   Mic,
+  RotateCcw,
+  ShieldCheck,
   Speaker,
   Volume2,
   Wand2,
+  Zap,
 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
@@ -42,7 +46,13 @@ import {
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
-import { speechGetSettings, speechUpdateSettings } from "@/lib/api"
+import {
+  assistantGetSettings,
+  assistantReset,
+  assistantSetSettings,
+  speechGetSettings,
+  speechUpdateSettings,
+} from "@/lib/api"
 import { toErrorMessage } from "@/lib/app-error"
 import {
   LOCALE_TO_BCP47,
@@ -59,7 +69,13 @@ import {
   useSpeechPrefs,
   type SpeechEnginePreference,
 } from "@/lib/speech-prefs"
-import type { SpeechCloudSettings } from "@/lib/types"
+import { useAcpAgents } from "@/hooks/use-acp-agents"
+import { getAgentLabel } from "@/lib/custom-agents"
+import type {
+  AgentType,
+  AssistantSettings,
+  SpeechCloudSettings,
+} from "@/lib/types"
 
 const LANGUAGE_FOLLOW_APP = "follow-app"
 const VOICE_DEFAULT = "default"
@@ -77,6 +93,14 @@ const OUTPUT_REASON_KEYS = {
   "no-engine": "reasonNoVoices",
   "cloud-not-configured": "reasonCloudNotConfigured",
 } as const
+
+// On the backend, pi is dropped by agent_delivers_wire_mcp and OpenClaw has
+// supports_mcp: false in src-tauri/src/acp/registry.rs, so codeg-mcp never
+// delivers MCP tool calls to either.
+const AGENTS_WITHOUT_MCP_DELIVERY: ReadonlySet<AgentType> = new Set([
+  "pi",
+  "open_claw",
+])
 
 const subscribeNever = () => () => {}
 const onClient = () => true
@@ -103,6 +127,20 @@ export function SpeechSettings() {
   const [saving, setSaving] = useState(false)
   const [customLanguageMode, setCustomLanguageMode] = useState(false)
   const [voices, setVoices] = useState<SpeechSynthesisVoice[] | null>(null)
+  const [assistantSettings, setAssistantSettings] =
+    useState<AssistantSettings | null>(null)
+  const [resettingAssistant, setResettingAssistant] = useState(false)
+
+  const { agents } = useAcpAgents()
+  const installedAssistantAgents = useMemo(
+    () =>
+      agents.filter(
+        (a) =>
+          a.installed_version !== null &&
+          !AGENTS_WITHOUT_MCP_DELIVERY.has(a.agent_type)
+      ),
+    [agents]
+  )
 
   const mounted = useSyncExternalStore(subscribeNever, onClient, onServer)
   const caps = useMemo(
@@ -112,11 +150,12 @@ export function SpeechSettings() {
 
   useEffect(() => {
     let alive = true
-    speechGetSettings().then(
-      (view) => {
+    Promise.all([speechGetSettings(), assistantGetSettings()]).then(
+      ([view, assistant]) => {
         if (!alive) return
         setCloud(view.settings)
         setApiKeySet(view.apiKeySet)
+        setAssistantSettings(assistant)
         setLoading(false)
       },
       (err) => {
@@ -137,6 +176,40 @@ export function SpeechSettings() {
     },
     [input]
   )
+
+  const voiceMode = prefs.voiceMode
+  const updateVoiceMode = useCallback(
+    (patch: Partial<typeof voiceMode>) => {
+      saveSpeechPrefs({ voiceMode: { ...voiceMode, ...patch } })
+    },
+    [voiceMode]
+  )
+
+  const updateAssistantSettings = useCallback(
+    async (patch: Partial<AssistantSettings>) => {
+      if (!assistantSettings) return
+      const next = { ...assistantSettings, ...patch }
+      setAssistantSettings(next)
+      try {
+        await assistantSetSettings(next)
+      } catch (err) {
+        toast.error(t("saveFailed", { message: toErrorMessage(err) }))
+      }
+    },
+    [assistantSettings, t]
+  )
+
+  const handleResetAssistant = useCallback(async () => {
+    setResettingAssistant(true)
+    try {
+      await assistantReset()
+      toast.success(t("assistantResetSuccess"))
+    } catch (err) {
+      toast.error(t("saveFailed", { message: toErrorMessage(err) }))
+    } finally {
+      setResettingAssistant(false)
+    }
+  }, [t])
 
   const output = prefs.output
   const updateOutput = useCallback(
@@ -199,6 +272,29 @@ export function SpeechSettings() {
       ),
     })
   }, [apiKeySet, caps, input, t])
+
+  const assistantStatus = useMemo(() => {
+    if (!caps || voices === null) return null
+    const inputRes = resolveInputEngine(input, caps, apiKeySet)
+    const outputRes = resolveOutputEngine(
+      output,
+      { browserTts: voices.length > 0 },
+      apiKeySet
+    )
+    const inputReady = inputRes.engine !== null
+    const outputReady = outputRes.engine !== null
+    const agentReady = Boolean(assistantSettings?.agentType)
+
+    const missing: string[] = []
+    if (!inputReady) missing.push(t("assistantStatusMissingInput"))
+    if (!outputReady) missing.push(t("assistantStatusMissingOutput"))
+    if (!agentReady) missing.push(t("assistantStatusMissingAgent"))
+
+    if (missing.length === 0) {
+      return t("assistantStatusReady")
+    }
+    return t("assistantStatusMissing", { missing: missing.join(", ") })
+  }, [apiKeySet, assistantSettings, caps, input, output, t, voices])
 
   const languageSelection =
     customLanguageMode ||
@@ -480,6 +576,197 @@ export function SpeechSettings() {
                     checked={output.autoRead}
                     onCheckedChange={(autoRead) => updateOutput({ autoRead })}
                   />
+                }
+              />
+            </SettingCard>
+          )}
+        </SettingsSection>
+
+        <SettingsSection
+          icon={AudioLines}
+          title={t("assistantTitle")}
+          description={t("assistantDescription")}
+          htmlFor="speech-voice-assistant-enabled"
+          control={
+            <Switch
+              id="speech-voice-assistant-enabled"
+              aria-label={t("assistantTitle")}
+              checked={voiceMode.enabled}
+              onCheckedChange={(enabled) => updateVoiceMode({ enabled })}
+            />
+          }
+        >
+          {voiceMode.enabled && (
+            <SettingCard>
+              <SettingRow
+                icon={Cpu}
+                title={t("assistantStatusLabel")}
+                description={
+                  assistantStatus ? (
+                    <span data-testid="speech-assistant-status">
+                      {assistantStatus}
+                    </span>
+                  ) : undefined
+                }
+              />
+
+              <SettingRow
+                icon={Bot}
+                title={t("assistantAgentLabel")}
+                htmlFor="speech-assistant-agent"
+                control={
+                  <Select
+                    value={assistantSettings?.agentType || "none"}
+                    onValueChange={(val) =>
+                      updateAssistantSettings({
+                        agentType: val === "none" ? null : (val as AgentType),
+                      })
+                    }
+                  >
+                    <SelectTrigger
+                      id="speech-assistant-agent"
+                      size="sm"
+                      className="w-48 bg-background text-xs"
+                      data-testid="speech-assistant-agent-trigger"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="end">
+                      <SelectItem value="none">
+                        {t("assistantAgentNone")}
+                      </SelectItem>
+                      {installedAssistantAgents.map((agent) => (
+                        <SelectItem
+                          key={agent.agent_type}
+                          value={agent.agent_type}
+                        >
+                          {getAgentLabel(agent.agent_type)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                }
+              />
+
+              <SettingRow
+                icon={Cpu}
+                title={t("assistantAllowSessionControlTitle")}
+                description={t("assistantAllowSessionControlDescription")}
+                htmlFor="speech-assistant-session-control"
+                control={
+                  <Switch
+                    id="speech-assistant-session-control"
+                    aria-label={t("assistantAllowSessionControlTitle")}
+                    checked={assistantSettings?.allowSessionControl ?? false}
+                    onCheckedChange={(allowSessionControl) =>
+                      updateAssistantSettings({ allowSessionControl })
+                    }
+                  />
+                }
+              />
+
+              <SettingRow
+                icon={ShieldCheck}
+                title={t("assistantAllowPermissionAnswersTitle")}
+                description={t("assistantAllowPermissionAnswersDescription")}
+                htmlFor="speech-assistant-permission-answers"
+                control={
+                  <Switch
+                    id="speech-assistant-permission-answers"
+                    aria-label={t("assistantAllowPermissionAnswersTitle")}
+                    checked={assistantSettings?.allowPermissionAnswers ?? false}
+                    onCheckedChange={(allowPermissionAnswers) =>
+                      updateAssistantSettings({ allowPermissionAnswers })
+                    }
+                  />
+                }
+              />
+
+              <SettingRow
+                icon={Gauge}
+                title={t("assistantEndSilenceLabel")}
+                control={
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {((voiceMode.endSilenceMs ?? 900) / 1000).toFixed(1)} s
+                  </span>
+                }
+              >
+                <Slider
+                  aria-label={t("assistantEndSilenceLabel")}
+                  min={0.5}
+                  max={2.5}
+                  step={0.1}
+                  value={[(voiceMode.endSilenceMs ?? 900) / 1000]}
+                  onValueChange={([val]) =>
+                    updateVoiceMode({ endSilenceMs: Math.round(val * 1000) })
+                  }
+                />
+              </SettingRow>
+
+              <SettingRow
+                icon={Zap}
+                title={t("assistantBargeInTitle")}
+                description={t("assistantBargeInDescription")}
+                htmlFor="speech-assistant-barge-in"
+                control={
+                  <Switch
+                    id="speech-assistant-barge-in"
+                    aria-label={t("assistantBargeInTitle")}
+                    checked={voiceMode.bargeIn}
+                    onCheckedChange={(bargeIn) => updateVoiceMode({ bargeIn })}
+                  />
+                }
+              />
+
+              <SettingRow
+                icon={Volume2}
+                title={t("assistantAnnounceLabel")}
+                htmlFor="speech-assistant-announce"
+                control={
+                  <Select
+                    value={voiceMode.announce === "off" ? "off" : "on"}
+                    onValueChange={(val) =>
+                      updateVoiceMode({
+                        announce: val === "off" ? "off" : "all",
+                      })
+                    }
+                  >
+                    <SelectTrigger
+                      id="speech-assistant-announce"
+                      size="sm"
+                      className="w-32 bg-background text-xs"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="end">
+                      <SelectItem value="on">
+                        {t("assistantAnnounceOn")}
+                      </SelectItem>
+                      <SelectItem value="off">
+                        {t("assistantAnnounceOff")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                }
+              />
+
+              <SettingRow
+                icon={RotateCcw}
+                title={t("assistantResetTitle")}
+                control={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    disabled={resettingAssistant}
+                    onClick={handleResetAssistant}
+                    data-testid="speech-assistant-reset-btn"
+                  >
+                    {resettingAssistant && (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    )}
+                    {t("assistantResetButton")}
+                  </Button>
                 }
               />
             </SettingCard>

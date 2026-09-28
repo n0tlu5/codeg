@@ -45,6 +45,9 @@ import { createVad, type VadEvent, type VadState } from "@/lib/voice-mode/vad"
 import { matchVoiceCommand } from "@/lib/voice-mode/voice-commands"
 
 import { VoiceAnnouncer } from "./voice-announcer"
+import { VoiceOrb } from "./voice-orb"
+import { useShortcutSettings } from "@/hooks/use-shortcut-settings"
+import { matchShortcutEvent } from "@/lib/keyboard-shortcuts"
 import {
   getVoiceModeState,
   patchVoiceMode,
@@ -106,6 +109,7 @@ export function VoiceModeHost({
   const tMessages = useTranslations("Folder.chat.messageList")
   const locale = useLocale()
   const announce = useSpeechPrefs().voiceMode.announce
+  const { shortcuts } = useShortcutSettings()
   const connections = useConnectionStore()
   const assistant = useAssistantSession()
   const { cancel, answerQuestion } = useAcpActions()
@@ -572,6 +576,12 @@ export function VoiceModeHost({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (matchShortcutEvent(event, shortcuts.toggle_voice_mode)) {
+        event.preventDefault()
+        const { phase } = getVoiceModeState()
+        requestVoiceMode(phase === "off")
+        return
+      }
       if (event.key !== "Escape" || event.defaultPrevented) return
       if (isEditableTarget(event.target)) return
       if (getVoiceModeState().phase === "off") return
@@ -586,7 +596,7 @@ export function VoiceModeHost({
       window.removeEventListener("keydown", onKeyDown)
       window.removeEventListener("pagehide", onPageHide)
     }
-  }, [])
+  }, [shortcuts])
 
   const injectRef = useRef(handleTranscript)
   useEffect(() => {
@@ -615,9 +625,12 @@ export function VoiceModeHost({
   }, [])
 
   return (
-    <VoiceAnnouncer
-      announce={announce}
-      speak={(text) => handlersRef.current.speakNotice(text)}
-    />
+    <>
+      <VoiceAnnouncer
+        announce={announce}
+        speak={(text) => handlersRef.current.speakNotice(text)}
+      />
+      <VoiceOrb />
+    </>
   )
 }

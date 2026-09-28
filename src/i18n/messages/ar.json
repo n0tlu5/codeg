@@ -514,6 +514,10 @@
         "title": "الإدخال الصوتي",
         "description": "بدء الإملاء في مربع الرسالة أو إيقافه"
       },
+      "toggle_voice_mode": {
+        "title": "وضع الصوت",
+        "description": "بدء المحادثة في وضع الصوت أو إيقافها"
+      },
       "zoom_in": {
         "title": "تكبير",
         "description": "اجعل النافذة أكبر بدرجة واحدة"
@@ -6596,9 +6600,45 @@
     "autoReadLabel": "قراءة الردود تلقائيًا",
     "autoReadDescription": "قراءة كل رد مكتمل في علامة التبويب النشطة بصوت عالٍ.",
     "ttsModel": "نموذج تحويل النص إلى كلام",
-    "ttsVoice": "صوت تحويل النص إلى كلام"
+    "ttsVoice": "صوت تحويل النص إلى كلام",
+    "assistantTitle": "المساعد الصوتي",
+    "assistantDescription": "السماح للمساعد بالتحدث عبر الصوت وإدارة الجلسات.",
+    "assistantStatusLabel": "حالة وضع الصوت",
+    "assistantStatusReady": "جاهز",
+    "assistantStatusMissing": "مفقود: {missing}",
+    "assistantStatusMissingInput": "محرك الإدخال الصوتي",
+    "assistantStatusMissingOutput": "محرك الإخراج الصوتي",
+    "assistantStatusMissingAgent": "وكيل المساعد",
+    "assistantAgentLabel": "وكيل المساعد",
+    "assistantAgentNone": "اختر وكيلاً...",
+    "assistantAllowSessionControlTitle": "التحكم بالجلسة",
+    "assistantAllowSessionControlDescription": "السماح للمساعد بالإرسال إلى الجلسات الأخرى وإيقافها",
+    "assistantAllowPermissionAnswersTitle": "إجابات الأذونات",
+    "assistantAllowPermissionAnswersDescription": "السماح للمساعد بالرد على مطالبات الأذونات (السماح مرة واحدة / الرفض مرة واحدة فقط، مؤكد دائمًا)",
+    "assistantEndSilenceLabel": "المهلة عند انتهاء الكلام",
+    "assistantBargeInTitle": "المقاطعة الصوتية",
+    "assistantBargeInDescription": "مقاطعة المساعد عند التحدث (يعمل بشكل أفضل مع سماعات الرأس)",
+    "assistantAnnounceLabel": "الإعلانات",
+    "assistantAnnounceOn": "مفعل",
+    "assistantAnnounceOff": "معطل",
+    "assistantResetTitle": "إعادة ضبط المساعد",
+    "assistantResetButton": "بدء محادثة جديدة مع المساعد",
+    "assistantResetSuccess": "تم بدء محادثة جديدة مع المساعد."
   },
   "VoiceMode": {
+    "close": "الخروج من وضع الصوت",
+    "openTranscript": "فتح تبويب النص",
+    "toggleVoiceMode": "تبديل وضع الصوت",
+    "phases": {
+      "off": "معطل",
+      "starting": "جاري بدء وضع الصوت...",
+      "listening": "جاري الاستماع...",
+      "capturing": "جاري التقاط الصوت...",
+      "transcribing": "جاري تحويل الصوت إلى نص...",
+      "waiting": "في انتظار المساعد...",
+      "speaking": "المساعد يتحدث...",
+      "confirming": "في انتظار التأكيد..."
+    },
     "queued": "في قائمة الانتظار. سأرسله عندما ينتهي المساعد من هذا الرد.",
     "noAssistantAgent": "اختر وكيلًا مساعدًا في الإعدادات ← الكلام لاستخدام الوضع الصوتي.",
     "inputUnavailable": "يحتاج الوضع الصوتي إلى إدخال صوتي. تحقق من محرك الإدخال في الإعدادات ← الكلام.",

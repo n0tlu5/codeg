@@ -514,6 +514,10 @@
         "title": "Voice Input",
         "description": "Start or stop dictating into the message box"
       },
+      "toggle_voice_mode": {
+        "title": "Voice Mode",
+        "description": "Start or stop voice mode conversation"
+      },
       "zoom_in": {
         "title": "Zoom in",
         "description": "Make the window one step larger"
@@ -6596,9 +6600,45 @@
     "autoReadLabel": "Read replies automatically",
     "autoReadDescription": "Read each finished reply in the active tab aloud.",
     "ttsModel": "Text-to-speech model",
-    "ttsVoice": "Text-to-speech voice"
+    "ttsVoice": "Text-to-speech voice",
+    "assistantTitle": "Voice assistant",
+    "assistantDescription": "Allow the assistant to converse via voice and orchestrate sessions.",
+    "assistantStatusLabel": "Voice mode status",
+    "assistantStatusReady": "Ready",
+    "assistantStatusMissing": "Missing: {missing}",
+    "assistantStatusMissingInput": "input engine",
+    "assistantStatusMissingOutput": "output engine",
+    "assistantStatusMissingAgent": "assistant agent",
+    "assistantAgentLabel": "Assistant agent",
+    "assistantAgentNone": "Select an agent...",
+    "assistantAllowSessionControlTitle": "Session control",
+    "assistantAllowSessionControlDescription": "Let the assistant send to and stop other sessions",
+    "assistantAllowPermissionAnswersTitle": "Permission answers",
+    "assistantAllowPermissionAnswersDescription": "Let the assistant answer permission prompts (allow once / deny once only, always confirmed)",
+    "assistantEndSilenceLabel": "End-of-speech pause",
+    "assistantBargeInTitle": "Barge-in",
+    "assistantBargeInDescription": "Interrupt the assistant by speaking (works best with headphones)",
+    "assistantAnnounceLabel": "Announcements",
+    "assistantAnnounceOn": "On",
+    "assistantAnnounceOff": "Off",
+    "assistantResetTitle": "Reset assistant",
+    "assistantResetButton": "Start a fresh assistant conversation",
+    "assistantResetSuccess": "Fresh assistant conversation started."
   },
   "VoiceMode": {
+    "close": "Exit voice mode",
+    "openTranscript": "Open transcript tab",
+    "toggleVoiceMode": "Toggle voice mode",
+    "phases": {
+      "off": "Off",
+      "starting": "Starting voice mode...",
+      "listening": "Listening...",
+      "capturing": "Capturing audio...",
+      "transcribing": "Transcribing...",
+      "waiting": "Waiting for assistant...",
+      "speaking": "Assistant speaking...",
+      "confirming": "Awaiting confirmation..."
+    },
     "queued": "Queued. I'll send it when the assistant finishes this reply.",
     "noAssistantAgent": "Choose an assistant agent in Settings → Speech to use voice mode.",
     "inputUnavailable": "Voice mode needs speech input. Check the input engine in Settings → Speech.",

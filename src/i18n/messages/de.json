@@ -514,6 +514,10 @@
         "title": "Spracheingabe",
         "description": "Diktat in das Nachrichtenfeld starten oder stoppen"
       },
+      "toggle_voice_mode": {
+        "title": "Sprachmodus",
+        "description": "Sprachmodus-Konversation starten oder stoppen"
+      },
       "zoom_in": {
         "title": "Vergrößern",
         "description": "Das Fenster eine Stufe größer machen"
@@ -6596,9 +6600,45 @@
     "autoReadLabel": "Antworten automatisch vorlesen",
     "autoReadDescription": "Liest jede fertige Antwort im aktiven Tab vor.",
     "ttsModel": "Text-to-Speech-Modell",
-    "ttsVoice": "Text-to-Speech-Stimme"
+    "ttsVoice": "Text-to-Speech-Stimme",
+    "assistantTitle": "Sprachassistent",
+    "assistantDescription": "Erlaubt dem Assistenten die Spracheingabe/-ausgabe und Sitzungssteuerung.",
+    "assistantStatusLabel": "Sprachmodus-Status",
+    "assistantStatusReady": "Bereit",
+    "assistantStatusMissing": "Fehlt: {missing}",
+    "assistantStatusMissingInput": "Eingabe-Engine",
+    "assistantStatusMissingOutput": "Ausgabe-Engine",
+    "assistantStatusMissingAgent": "Assistenten-Agent",
+    "assistantAgentLabel": "Assistenten-Agent",
+    "assistantAgentNone": "Agent auswählen...",
+    "assistantAllowSessionControlTitle": "Sitzungssteuerung",
+    "assistantAllowSessionControlDescription": "Dem Assistenten erlauben, an andere Sitzungen zu senden und diese zu stoppen",
+    "assistantAllowPermissionAnswersTitle": "Berechtigungsantworten",
+    "assistantAllowPermissionAnswersDescription": "Dem Assistenten erlauben, Berechtigungsanfragen zu beantworten (nur einmal erlauben / einmal ablehnen, immer bestätigt)",
+    "assistantEndSilenceLabel": "Pause nach Sprachende",
+    "assistantBargeInTitle": "Unterbrechen",
+    "assistantBargeInDescription": "Den Assistenten durch Sprechen unterbrechen (Kopfhörer empfohlen)",
+    "assistantAnnounceLabel": "Ankündigungen",
+    "assistantAnnounceOn": "Ein",
+    "assistantAnnounceOff": "Aus",
+    "assistantResetTitle": "Assistent zurücksetzen",
+    "assistantResetButton": "Neue Assistenten-Konversation starten",
+    "assistantResetSuccess": "Neue Assistenten-Konversation gestartet."
   },
   "VoiceMode": {
+    "close": "Sprachmodus beenden",
+    "openTranscript": "Transkript-Tab öffnen",
+    "toggleVoiceMode": "Sprachmodus umschalten",
+    "phases": {
+      "off": "Aus",
+      "starting": "Sprachmodus wird gestartet...",
+      "listening": "Zuhören...",
+      "capturing": "Audioaufnahme...",
+      "transcribing": "Transkribieren...",
+      "waiting": "Warten auf Assistent...",
+      "speaking": "Assistent spricht...",
+      "confirming": "Warten auf Bestätigung..."
+    },
     "queued": "In der Warteschlange. Wird gesendet, sobald der Assistent diese Antwort beendet hat.",
     "noAssistantAgent": "Wähle unter Einstellungen → Sprache einen Assistenz-Agenten, um den Sprachmodus zu nutzen.",
     "inputUnavailable": "Der Sprachmodus benötigt Spracheingabe. Prüfe die Eingabe-Engine unter Einstellungen → Sprache.",

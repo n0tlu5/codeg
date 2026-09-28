@@ -514,6 +514,10 @@
         "title": "語音輸入",
         "description": "開始或停止向輸入框口述"
       },
+      "toggle_voice_mode": {
+        "title": "語音模式",
+        "description": "啟動或停止語音模式對話"
+      },
       "zoom_in": {
         "title": "放大",
         "description": "把視窗縮放提高一檔"
@@ -6596,9 +6600,45 @@
     "autoReadLabel": "自動朗讀回覆",
     "autoReadDescription": "在目前分頁中自動朗讀每則完成的回覆。",
     "ttsModel": "文字轉語音模型",
-    "ttsVoice": "文字轉語音聲音"
+    "ttsVoice": "文字轉語音聲音",
+    "assistantTitle": "語音助理",
+    "assistantDescription": "允許助理透過語音對話並編排會話。",
+    "assistantStatusLabel": "語音模式狀態",
+    "assistantStatusReady": "就緒",
+    "assistantStatusMissing": "缺少：{missing}",
+    "assistantStatusMissingInput": "語音輸入引擎",
+    "assistantStatusMissingOutput": "語音輸出引擎",
+    "assistantStatusMissingAgent": "助理代理",
+    "assistantAgentLabel": "助理代理",
+    "assistantAgentNone": "選擇代理...",
+    "assistantAllowSessionControlTitle": "會話控制",
+    "assistantAllowSessionControlDescription": "允許助理向其他會話傳送訊息並停止其他會話",
+    "assistantAllowPermissionAnswersTitle": "權限應答",
+    "assistantAllowPermissionAnswersDescription": "允許助理回答權限提示（僅允許一次/拒絕一次，始終提示確認）",
+    "assistantEndSilenceLabel": "說話結束停頓",
+    "assistantBargeInTitle": "打斷說話",
+    "assistantBargeInDescription": "說話即可打斷助理（推薦使用耳機）",
+    "assistantAnnounceLabel": "播報通知",
+    "assistantAnnounceOn": "開啟",
+    "assistantAnnounceOff": "關閉",
+    "assistantResetTitle": "重置助理",
+    "assistantResetButton": "開啟新的助理對話",
+    "assistantResetSuccess": "已開啟新的助理對話。"
   },
   "VoiceMode": {
+    "close": "退出語音模式",
+    "openTranscript": "開啟對話記錄標籤頁",
+    "toggleVoiceMode": "切換語音模式",
+    "phases": {
+      "off": "已關閉",
+      "starting": "正在啟動語音模式...",
+      "listening": "正在聆聽...",
+      "capturing": "正在擷取音訊...",
+      "transcribing": "正在轉錄...",
+      "waiting": "正在等待助理...",
+      "speaking": "助理說話中...",
+      "confirming": "等待確認..."
+    },
     "queued": "已排入佇列。助理完成這次回覆後傳送。",
     "noAssistantAgent": "請在 設定 → 語音 中選擇助理代理以使用語音模式。",
     "inputUnavailable": "語音模式需要語音輸入。請在 設定 → 語音 中檢查輸入引擎。",

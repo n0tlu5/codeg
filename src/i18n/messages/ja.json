@@ -514,6 +514,10 @@
         "title": "音声入力",
         "description": "メッセージ欄への音声入力を開始・停止します"
       },
+      "toggle_voice_mode": {
+        "title": "音声モード",
+        "description": "音声モード会話を開始または停止します"
+      },
       "zoom_in": {
         "title": "拡大",
         "description": "ウィンドウの表示倍率を一段階上げます"
@@ -6596,9 +6600,45 @@
     "autoReadLabel": "返信を自動で読み上げ",
     "autoReadDescription": "アクティブなタブで完了した返信を自動で読み上げます。",
     "ttsModel": "音声合成モデル",
-    "ttsVoice": "音声合成ボイス"
+    "ttsVoice": "音声合成ボイス",
+    "assistantTitle": "音声アシスタント",
+    "assistantDescription": "音声による対話とセッションオーケストレーションを許可します。",
+    "assistantStatusLabel": "音声モードステータス",
+    "assistantStatusReady": "準備完了",
+    "assistantStatusMissing": "未設定: {missing}",
+    "assistantStatusMissingInput": "音声入力エンジン",
+    "assistantStatusMissingOutput": "音声出力エンジン",
+    "assistantStatusMissingAgent": "アシスタントエージェント",
+    "assistantAgentLabel": "アシスタントエージェント",
+    "assistantAgentNone": "エージェントを選択...",
+    "assistantAllowSessionControlTitle": "セッション制御",
+    "assistantAllowSessionControlDescription": "アシスタントが他のセッションに送信および停止することを許可",
+    "assistantAllowPermissionAnswersTitle": "権限応答",
+    "assistantAllowPermissionAnswersDescription": "アシスタントが権限プロンプトに回答することを許可（1回許可/1回拒否のみ、常に確認）",
+    "assistantEndSilenceLabel": "発話終了ポーズ",
+    "assistantBargeInTitle": "割り込み",
+    "assistantBargeInDescription": "話しかけてアシスタントの発言を中断（ヘッドフォン推奨）",
+    "assistantAnnounceLabel": "アナウンス通知",
+    "assistantAnnounceOn": "オン",
+    "assistantAnnounceOff": "オフ",
+    "assistantResetTitle": "アシスタントをリセット",
+    "assistantResetButton": "新しいアシスタント会話を開始",
+    "assistantResetSuccess": "新しいアシスタント会話を開始しました。"
   },
   "VoiceMode": {
+    "close": "音声モードを終了",
+    "openTranscript": "文字起こしタブを開く",
+    "toggleVoiceMode": "音声モードを切り替え",
+    "phases": {
+      "off": "オフ",
+      "starting": "音声モードを起動中...",
+      "listening": "聞き取り中...",
+      "capturing": "録音中...",
+      "transcribing": "文字起こし中...",
+      "waiting": "アシスタントの応答を待機中...",
+      "speaking": "アシスタントが発言中...",
+      "confirming": "確認待ち..."
+    },
     "queued": "キューに追加しました。アシスタントの返信が終わったら送信します。",
     "noAssistantAgent": "音声モードを使うには、設定 → 音声 でアシスタントのエージェントを選択してください。",
     "inputUnavailable": "音声モードには音声入力が必要です。設定 → 音声 で入力エンジンを確認してください。",

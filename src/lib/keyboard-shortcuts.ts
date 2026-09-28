@@ -26,6 +26,7 @@ export type ShortcutActionId =
   | "newline_in_message"
   | "toggle_custom_style"
   | "toggle_voice_input"
+  | "toggle_voice_mode"
   | "zoom_in"
   | "zoom_out"
   | "zoom_reset"
@@ -99,6 +100,9 @@ export const SHORTCUT_DEFINITIONS: ShortcutDefinition[] = [
     id: "toggle_voice_input",
   },
   {
+    id: "toggle_voice_mode",
+  },
+  {
     id: "zoom_in",
   },
   {
@@ -166,6 +170,7 @@ export const DEFAULT_SHORTCUTS: ShortcutSettings = {
   // 三修饰键组合（不会与任何常用操作撞车），并在捕获阶段监听。
   toggle_custom_style: "mod+alt+shift+s",
   toggle_voice_input: "mod+shift+m",
+  toggle_voice_mode: "mod+shift+j",
   // Same rungs as Settings → Window zoom. `=` is what US keyboards fire for
   // Ctrl/+ without Shift; `+` is Shift+= and the numpad.
   zoom_in: "mod+=",

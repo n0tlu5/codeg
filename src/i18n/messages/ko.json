@@ -514,6 +514,10 @@
         "title": "음성 입력",
         "description": "메시지 입력란에 받아쓰기를 시작하거나 중지합니다"
       },
+      "toggle_voice_mode": {
+        "title": "음성 모드",
+        "description": "음성 모드 대화를 시작하거나 중지합니다"
+      },
       "zoom_in": {
         "title": "확대",
         "description": "창을 한 단계 더 크게 만듭니다"
@@ -6596,9 +6600,45 @@
     "autoReadLabel": "답변 자동 읽기",
     "autoReadDescription": "활성 탭에서 완료된 답변을 자동으로 읽어 줍니다.",
     "ttsModel": "텍스트 음성 변환 모델",
-    "ttsVoice": "텍스트 음성 변환 음성"
+    "ttsVoice": "텍스트 음성 변환 음성",
+    "assistantTitle": "음성 어시스턴트",
+    "assistantDescription": "음성을 통한 대화 및 세션 관리를 허용합니다.",
+    "assistantStatusLabel": "음성 모드 상태",
+    "assistantStatusReady": "준비됨",
+    "assistantStatusMissing": "누락됨: {missing}",
+    "assistantStatusMissingInput": "음성 입력 엔진",
+    "assistantStatusMissingOutput": "음성 출력 엔진",
+    "assistantStatusMissingAgent": "어시스턴트 에이전트",
+    "assistantAgentLabel": "어시스턴트 에이전트",
+    "assistantAgentNone": "에이전트 선택...",
+    "assistantAllowSessionControlTitle": "세션 제어",
+    "assistantAllowSessionControlDescription": "어시스턴트가 다른 세션에 메시지를 전송하고 중지하도록 허용",
+    "assistantAllowPermissionAnswersTitle": "권한 응답",
+    "assistantAllowPermissionAnswersDescription": "어시스턴트가 권한 프롬프트에 응답하도록 허용 (1회 허용/1회 거부 전용, 항상 확인됨)",
+    "assistantEndSilenceLabel": "발화 종료 대기 시간",
+    "assistantBargeInTitle": "중간 끼어들기",
+    "assistantBargeInDescription": "말하여 어시스턴트의 답변 중단 (헤드폰 권장)",
+    "assistantAnnounceLabel": "알림 안내",
+    "assistantAnnounceOn": "켜짐",
+    "assistantAnnounceOff": "꺼짐",
+    "assistantResetTitle": "어시스턴트 재설정",
+    "assistantResetButton": "새 어시스턴트 대화 시작",
+    "assistantResetSuccess": "새 어시스턴트 대화가 시작되었습니다."
   },
   "VoiceMode": {
+    "close": "음성 모드 종료",
+    "openTranscript": "대화 기록 탭 열기",
+    "toggleVoiceMode": "음성 모드 전환",
+    "phases": {
+      "off": "꺼짐",
+      "starting": "음성 모드 시작 중...",
+      "listening": "듣는 중...",
+      "capturing": "음성 수집 중...",
+      "transcribing": "받아쓰기 중...",
+      "waiting": "어시스턴트 대기 중...",
+      "speaking": "어시스턴트 말하는 중...",
+      "confirming": "확인 대기 중..."
+    },
     "queued": "대기열에 추가했습니다. 어시스턴트가 이 답변을 마치면 보냅니다.",
     "noAssistantAgent": "음성 모드를 사용하려면 설정 → 음성에서 어시스턴트 에이전트를 선택하세요.",
     "inputUnavailable": "음성 모드에는 음성 입력이 필요합니다. 설정 → 음성에서 입력 엔진을 확인하세요.",

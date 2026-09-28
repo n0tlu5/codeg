@@ -514,6 +514,10 @@
         "title": "Entrada de voz",
         "description": "Iniciar ou parar o ditado na caixa de mensagem"
       },
+      "toggle_voice_mode": {
+        "title": "Modo de Voz",
+        "description": "Iniciar ou parar a conversa no modo de voz"
+      },
       "zoom_in": {
         "title": "Aumentar zoom",
         "description": "Aumenta a janela em um nível"
@@ -6596,9 +6600,45 @@
     "autoReadLabel": "Ler respostas automaticamente",
     "autoReadDescription": "Lê em voz alta cada resposta concluída na aba ativa.",
     "ttsModel": "Modelo de texto para fala",
-    "ttsVoice": "Voz de texto para fala"
+    "ttsVoice": "Voz de texto para fala",
+    "assistantTitle": "Assistente de voz",
+    "assistantDescription": "Permitir que o assistente converse por voz e orquestre sessões.",
+    "assistantStatusLabel": "Status do modo de voz",
+    "assistantStatusReady": "Pronto",
+    "assistantStatusMissing": "Faltando: {missing}",
+    "assistantStatusMissingInput": "mecanismo de entrada",
+    "assistantStatusMissingOutput": "mecanismo de saída",
+    "assistantStatusMissingAgent": "agente assistente",
+    "assistantAgentLabel": "Agente assistente",
+    "assistantAgentNone": "Selecionar um agente...",
+    "assistantAllowSessionControlTitle": "Controle de sessão",
+    "assistantAllowSessionControlDescription": "Permitir que o assistente envie para e pare outras sessões",
+    "assistantAllowPermissionAnswersTitle": "Respostas de permissão",
+    "assistantAllowPermissionAnswersDescription": "Permitir que o assistente responda solicitações de permissão (permitir uma vez / negar uma vez apenas, sempre confirmado)",
+    "assistantEndSilenceLabel": "Pausa de fim de fala",
+    "assistantBargeInTitle": "Interrupção",
+    "assistantBargeInDescription": "Interromper o assistente falando (funciona melhor com fones de ouvido)",
+    "assistantAnnounceLabel": "Anúncios",
+    "assistantAnnounceOn": "Ligado",
+    "assistantAnnounceOff": "Desligado",
+    "assistantResetTitle": "Redefinir assistente",
+    "assistantResetButton": "Iniciar uma nova conversa com o assistente",
+    "assistantResetSuccess": "Nova conversa com o assistente iniciada."
   },
   "VoiceMode": {
+    "close": "Sair do modo de voz",
+    "openTranscript": "Abrir aba de transcrição",
+    "toggleVoiceMode": "Alternar modo de voz",
+    "phases": {
+      "off": "Desligado",
+      "starting": "Iniciando modo de voz...",
+      "listening": "Ouvindo...",
+      "capturing": "Capturando áudio...",
+      "transcribing": "Transcrevendo...",
+      "waiting": "Aguardando o assistente...",
+      "speaking": "Assistente falando...",
+      "confirming": "Aguardando confirmação..."
+    },
     "queued": "Na fila. Será enviado quando o assistente terminar esta resposta.",
     "noAssistantAgent": "Escolha um agente assistente em Configurações → Voz para usar o modo de voz.",
     "inputUnavailable": "O modo de voz precisa de entrada de voz. Verifique o mecanismo de entrada em Configurações → Voz.",

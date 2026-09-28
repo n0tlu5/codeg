@@ -514,6 +514,10 @@
         "title": "Saisie vocale",
         "description": "Démarrer ou arrêter la dictée dans la zone de message"
       },
+      "toggle_voice_mode": {
+        "title": "Mode vocal",
+        "description": "Démarrer ou arrêter la conversation en mode vocal"
+      },
       "zoom_in": {
         "title": "Zoom avant",
         "description": "Agrandit la fenêtre d'un cran"
@@ -6596,9 +6600,45 @@
     "autoReadLabel": "Lire les réponses automatiquement",
     "autoReadDescription": "Lit à voix haute chaque réponse terminée dans l'onglet actif.",
     "ttsModel": "Modèle de synthèse vocale",
-    "ttsVoice": "Voix de synthèse vocale"
+    "ttsVoice": "Voix de synthèse vocale",
+    "assistantTitle": "Assistant vocal",
+    "assistantDescription": "Autoriser l'assistant à converser par la voix et à orchestrer les sessions.",
+    "assistantStatusLabel": "Statut du mode vocal",
+    "assistantStatusReady": "Prêt",
+    "assistantStatusMissing": "Manquant : {missing}",
+    "assistantStatusMissingInput": "moteur d'entrée",
+    "assistantStatusMissingOutput": "moteur de sortie",
+    "assistantStatusMissingAgent": "agent assistant",
+    "assistantAgentLabel": "Agent assistant",
+    "assistantAgentNone": "Sélectionner un agent...",
+    "assistantAllowSessionControlTitle": "Contrôle de session",
+    "assistantAllowSessionControlDescription": "Autoriser l'assistant à envoyer et arrêter d'autres sessions",
+    "assistantAllowPermissionAnswersTitle": "Réponses aux permissions",
+    "assistantAllowPermissionAnswersDescription": "Autoriser l'assistant à répondre aux demandes de permission (autoriser une fois / refuser une fois uniquement, toujours confirmé)",
+    "assistantEndSilenceLabel": "Pause de fin de parole",
+    "assistantBargeInTitle": "Interruption",
+    "assistantBargeInDescription": "Interrompre l'assistant en parlant (fonctionne mieux avec des écouteurs)",
+    "assistantAnnounceLabel": "Annonces",
+    "assistantAnnounceOn": "Activé",
+    "assistantAnnounceOff": "Désactivé",
+    "assistantResetTitle": "Réinitialiser l'assistant",
+    "assistantResetButton": "Démarrer une nouvelle conversation avec l'assistant",
+    "assistantResetSuccess": "Nouvelle conversation avec l'assistant démarrée."
   },
   "VoiceMode": {
+    "close": "Quitter le mode vocal",
+    "openTranscript": "Ouvrir l'onglet de transcription",
+    "toggleVoiceMode": "Basculer le mode vocal",
+    "phases": {
+      "off": "Désactivé",
+      "starting": "Démarrage du mode vocal...",
+      "listening": "À l'écoute...",
+      "capturing": "Capture audio...",
+      "transcribing": "Transcription...",
+      "waiting": "En attente de l'assistant...",
+      "speaking": "L'assistant parle...",
+      "confirming": "En attente de confirmation..."
+    },
     "queued": "En file d'attente. Envoi dès que l'assistant aura terminé cette réponse.",
     "noAssistantAgent": "Choisissez un agent assistant dans Paramètres → Voix pour utiliser le mode vocal.",
     "inputUnavailable": "Le mode vocal nécessite une entrée vocale. Vérifiez le moteur d'entrée dans Paramètres → Voix.",
