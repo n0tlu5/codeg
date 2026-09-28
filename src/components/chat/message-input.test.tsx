@@ -2536,9 +2536,24 @@ describe("MessageInput read-aloud stop triggers", () => {
       labels: { codeOmitted: "", tableOmitted: "" },
     })
     expect(speechPlayer.getSpeechPlayerState().status).not.toBe("idle")
-    const stop = vi.spyOn(speechPlayer, "stopSpeech")
+    const stop = vi.spyOn(speechPlayer, "stopReadAloud")
     return { editor: composerHandle.current!.getEditor()!, stop }
   }
+
+  it("keeps a voice-mode reply playing when the user types", async () => {
+    const { editor } = await mountWithPlayback()
+    speechPlayer.beginSpeechStream("voice-turn", {
+      engine: "browser",
+      language: "en-US",
+      labels: { codeOmitted: "", tableOmitted: "" },
+    })
+    speechPlayer.enqueueSpeech("voice-turn", "Still talking.")
+    act(() => {
+      editor.commands.insertContent("x")
+    })
+    expect(speechPlayer.getSpeechPlayerState().playingId).toBe("voice-turn")
+    speechPlayer.stopSpeech()
+  })
 
   it("stops reading when the user types", async () => {
     const { editor, stop } = await mountWithPlayback()

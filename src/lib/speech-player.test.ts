@@ -16,6 +16,7 @@ import {
   onSpeechDrained,
   resetSpeechPlayerForTests,
   speak,
+  stopReadAloud,
   stopSpeech,
   subscribeSpeechPlayer,
 } from "./speech-player"
@@ -385,6 +386,19 @@ describe("streaming", () => {
     expect(drained).toHaveBeenCalledOnce()
     expect(getSpeechPlayerState().status).toBe("idle")
     unsubscribe()
+  })
+
+  it("keeps a speech stream alive when read-aloud is stopped", () => {
+    beginSpeechStream("turn-1", browser)
+    enqueueSpeech("turn-1", "First sentence.")
+    synth.queue[0].onstart?.()
+    synth.cancel.mockClear()
+    stopReadAloud()
+    expect(synth.cancel).not.toHaveBeenCalled()
+    expect(getSpeechPlayerState().status).toBe("playing")
+    stopSpeech()
+    stopReadAloud()
+    expect(getSpeechPlayerState().status).toBe("idle")
   })
 
   it("drains immediately when the stream ends with nothing queued", () => {

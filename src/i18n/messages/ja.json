@@ -6597,5 +6597,16 @@
     "autoReadDescription": "アクティブなタブで完了した返信を自動で読み上げます。",
     "ttsModel": "音声合成モデル",
     "ttsVoice": "音声合成ボイス"
+  },
+  "VoiceMode": {
+    "queued": "キューに追加しました。アシスタントの返信が終わったら送信します。",
+    "noAssistantAgent": "音声モードを使うには、設定 → 音声 でアシスタントのエージェントを選択してください。",
+    "inputUnavailable": "音声モードには音声入力が必要です。設定 → 音声 で入力エンジンを確認してください。",
+    "outputUnavailable": "音声モードには音声出力が必要です。設定 → 音声 で出力エンジンを確認してください。",
+    "openSpeechSettings": "音声設定",
+    "startFailed": "音声モードを開始できませんでした：{message}",
+    "sendFailed": "アシスタントに送信できませんでした：{message}",
+    "transcribeFailed": "発話を文字起こしできませんでした：{message}",
+    "voiceTurnEndedEmpty": "アシスタントは返信せずに終了しました。"
   }
 }

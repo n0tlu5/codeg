@@ -6597,5 +6597,16 @@
     "autoReadDescription": "Read each finished reply in the active tab aloud.",
     "ttsModel": "Text-to-speech model",
     "ttsVoice": "Text-to-speech voice"
+  },
+  "VoiceMode": {
+    "queued": "Queued. I'll send it when the assistant finishes this reply.",
+    "noAssistantAgent": "Choose an assistant agent in Settings → Speech to use voice mode.",
+    "inputUnavailable": "Voice mode needs speech input. Check the input engine in Settings → Speech.",
+    "outputUnavailable": "Voice mode needs speech output. Check the output engine in Settings → Speech.",
+    "openSpeechSettings": "Speech settings",
+    "startFailed": "Voice mode could not start: {message}",
+    "sendFailed": "Could not send to the assistant: {message}",
+    "transcribeFailed": "Could not transcribe what you said: {message}",
+    "voiceTurnEndedEmpty": "The assistant finished without a reply."
   }
 }

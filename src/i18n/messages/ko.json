@@ -6597,5 +6597,16 @@
     "autoReadDescription": "활성 탭에서 완료된 답변을 자동으로 읽어 줍니다.",
     "ttsModel": "텍스트 음성 변환 모델",
     "ttsVoice": "텍스트 음성 변환 음성"
+  },
+  "VoiceMode": {
+    "queued": "대기열에 추가했습니다. 어시스턴트가 이 답변을 마치면 보냅니다.",
+    "noAssistantAgent": "음성 모드를 사용하려면 설정 → 음성에서 어시스턴트 에이전트를 선택하세요.",
+    "inputUnavailable": "음성 모드에는 음성 입력이 필요합니다. 설정 → 음성에서 입력 엔진을 확인하세요.",
+    "outputUnavailable": "음성 모드에는 음성 출력이 필요합니다. 설정 → 음성에서 출력 엔진을 확인하세요.",
+    "openSpeechSettings": "음성 설정",
+    "startFailed": "음성 모드를 시작할 수 없습니다: {message}",
+    "sendFailed": "어시스턴트에게 보낼 수 없습니다: {message}",
+    "transcribeFailed": "말씀하신 내용을 받아쓸 수 없습니다: {message}",
+    "voiceTurnEndedEmpty": "어시스턴트가 답변 없이 종료했습니다."
   }
 }

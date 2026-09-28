@@ -6597,5 +6597,16 @@
     "autoReadDescription": "Lê em voz alta cada resposta concluída na aba ativa.",
     "ttsModel": "Modelo de texto para fala",
     "ttsVoice": "Voz de texto para fala"
+  },
+  "VoiceMode": {
+    "queued": "Na fila. Será enviado quando o assistente terminar esta resposta.",
+    "noAssistantAgent": "Escolha um agente assistente em Configurações → Voz para usar o modo de voz.",
+    "inputUnavailable": "O modo de voz precisa de entrada de voz. Verifique o mecanismo de entrada em Configurações → Voz.",
+    "outputUnavailable": "O modo de voz precisa de saída de voz. Verifique o mecanismo de saída em Configurações → Voz.",
+    "openSpeechSettings": "Configurações de voz",
+    "startFailed": "Não foi possível iniciar o modo de voz: {message}",
+    "sendFailed": "Não foi possível enviar ao assistente: {message}",
+    "transcribeFailed": "Não foi possível transcrever o que você disse: {message}",
+    "voiceTurnEndedEmpty": "O assistente terminou sem responder."
   }
 }

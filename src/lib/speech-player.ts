@@ -97,6 +97,11 @@ function revokeAll() {
   objectUrls.clear()
 }
 
+export function stopReadAloud(): void {
+  if (stream) return
+  stopSpeech()
+}
+
 export function stopSpeech(): void {
   generation += 1
   if (typeof window !== "undefined" && window.speechSynthesis) {

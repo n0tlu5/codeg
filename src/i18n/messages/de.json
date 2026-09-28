@@ -6597,5 +6597,16 @@
     "autoReadDescription": "Liest jede fertige Antwort im aktiven Tab vor.",
     "ttsModel": "Text-to-Speech-Modell",
     "ttsVoice": "Text-to-Speech-Stimme"
+  },
+  "VoiceMode": {
+    "queued": "In der Warteschlange. Wird gesendet, sobald der Assistent diese Antwort beendet hat.",
+    "noAssistantAgent": "Wähle unter Einstellungen → Sprache einen Assistenz-Agenten, um den Sprachmodus zu nutzen.",
+    "inputUnavailable": "Der Sprachmodus benötigt Spracheingabe. Prüfe die Eingabe-Engine unter Einstellungen → Sprache.",
+    "outputUnavailable": "Der Sprachmodus benötigt Sprachausgabe. Prüfe die Ausgabe-Engine unter Einstellungen → Sprache.",
+    "openSpeechSettings": "Spracheinstellungen",
+    "startFailed": "Sprachmodus konnte nicht starten: {message}",
+    "sendFailed": "Senden an den Assistenten fehlgeschlagen: {message}",
+    "transcribeFailed": "Das Gesagte konnte nicht transkribiert werden: {message}",
+    "voiceTurnEndedEmpty": "Der Assistent hat ohne Antwort beendet."
   }
 }

@@ -3164,6 +3164,7 @@ export type SettingsSection =
   | "browser"
   | "version-control"
   | "shortcuts"
+  | "speech"
   | "system"
 
 interface OpenSettingsWindowOptions {

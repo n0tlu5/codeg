@@ -6597,5 +6597,16 @@
     "autoReadDescription": "Lit à voix haute chaque réponse terminée dans l'onglet actif.",
     "ttsModel": "Modèle de synthèse vocale",
     "ttsVoice": "Voix de synthèse vocale"
+  },
+  "VoiceMode": {
+    "queued": "En file d'attente. Envoi dès que l'assistant aura terminé cette réponse.",
+    "noAssistantAgent": "Choisissez un agent assistant dans Paramètres → Voix pour utiliser le mode vocal.",
+    "inputUnavailable": "Le mode vocal nécessite une entrée vocale. Vérifiez le moteur d'entrée dans Paramètres → Voix.",
+    "outputUnavailable": "Le mode vocal nécessite une sortie vocale. Vérifiez le moteur de sortie dans Paramètres → Voix.",
+    "openSpeechSettings": "Paramètres vocaux",
+    "startFailed": "Impossible de démarrer le mode vocal : {message}",
+    "sendFailed": "Impossible d'envoyer à l'assistant : {message}",
+    "transcribeFailed": "Impossible de transcrire ce que vous avez dit : {message}",
+    "voiceTurnEndedEmpty": "L'assistant a terminé sans répondre."
   }
 }

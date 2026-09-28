@@ -104,7 +104,7 @@ import { dismissNotification, notify, type NotifyAction } from "@/lib/notify"
 import type { SnapshotPatch } from "@/lib/snapshot-denormalize"
 import { getAgentLabel } from "@/lib/custom-agents"
 import { resolveSpeechLanguage } from "@/lib/speech-capabilities"
-import { maybeAutoRead, stopSpeech } from "@/lib/speech-player"
+import { maybeAutoRead, stopReadAloud } from "@/lib/speech-player"
 import { getSpeechPrefs } from "@/lib/speech-prefs"
 import { useTabStore } from "@/stores/tab-store"
 import {
@@ -3312,10 +3312,11 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
     localeRef.current = locale
   }, [locale])
   // Read-aloud belongs to the tab it was started in; leaving the tab ends it.
+  // Voice-mode speech streams are workspace-wide and keep playing.
   useEffect(
     () =>
       useTabStore.subscribe((state, prev) => {
-        if (state.activeTabId !== prev.activeTabId) stopSpeech()
+        if (state.activeTabId !== prev.activeTabId) stopReadAloud()
       }),
     []
   )
@@ -5958,6 +5959,9 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
     const timer = setInterval(() => {
       const currentActiveKey = storeRef.current.activeKey
       const currentOpenTabKeys = heldOpenKeys()
+      const surfaceKeys = new Set(
+        [...extraLiveKeysRef.current.values()].flatMap((keys) => [...keys])
+      )
       const seen = new Set<string>()
       const toTouch: { contextKey: string; connectionId: string }[] = []
       const consider = (contextKey: string) => {
@@ -5968,8 +5972,9 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
         if (conn.status === "disconnected" || conn.status === "error") return
         // Broker-owned children come and go on the parent's schedule and are
         // released by `detachDelegationChild`; settling one here would fight
-        // that lifecycle.
-        if (conn.isDelegationChild) return
+        // that lifecycle. A child a live surface holds (the voice-mode
+        // assistant) is still touched, or the backend sweep reaps it.
+        if (conn.isDelegationChild && !surfaceKeys.has(contextKey)) return
         toTouch.push({ contextKey, connectionId: conn.connectionId })
       }
       if (currentActiveKey) consider(currentActiveKey)

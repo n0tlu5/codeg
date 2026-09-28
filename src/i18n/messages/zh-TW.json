@@ -6597,5 +6597,16 @@
     "autoReadDescription": "在目前分頁中自動朗讀每則完成的回覆。",
     "ttsModel": "文字轉語音模型",
     "ttsVoice": "文字轉語音聲音"
+  },
+  "VoiceMode": {
+    "queued": "已排入佇列。助理完成這次回覆後傳送。",
+    "noAssistantAgent": "請在 設定 → 語音 中選擇助理代理以使用語音模式。",
+    "inputUnavailable": "語音模式需要語音輸入。請在 設定 → 語音 中檢查輸入引擎。",
+    "outputUnavailable": "語音模式需要語音輸出。請在 設定 → 語音 中檢查輸出引擎。",
+    "openSpeechSettings": "語音設定",
+    "startFailed": "語音模式無法啟動：{message}",
+    "sendFailed": "無法傳送給助理：{message}",
+    "transcribeFailed": "無法辨識你說的話：{message}",
+    "voiceTurnEndedEmpty": "助理已結束，但沒有回覆。"
   }
 }

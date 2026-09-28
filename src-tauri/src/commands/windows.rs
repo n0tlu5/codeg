@@ -418,6 +418,7 @@ fn resolve_settings_route(section: Option<&str>) -> &'static str {
         Some("browser") => "settings/browser",
         Some("version-control") => "settings/version-control",
         Some("shortcuts") => "settings/shortcuts",
+        Some("speech") => "settings/speech",
         Some("system") => "settings/system",
         _ => "settings/appearance",
     }
@@ -2748,6 +2749,7 @@ mod settings_route_tests {
             "browser",
             "version-control",
             "shortcuts",
+            "speech",
             "system",
         ] {
             assert_eq!(
