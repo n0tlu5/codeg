@@ -6607,6 +6607,18 @@
     "startFailed": "تعذر بدء الوضع الصوتي: {message}",
     "sendFailed": "تعذر الإرسال إلى المساعد: {message}",
     "transcribeFailed": "تعذر تحويل ما قلته إلى نص: {message}",
-    "voiceTurnEndedEmpty": "أنهى المساعد دون رد."
+    "voiceTurnEndedEmpty": "أنهى المساعد دون رد.",
+    "commands": {
+      "stop": "قف",
+      "cancel": "إلغاء",
+      "repeat": "كرر",
+      "exit": "خروج",
+      "confirm": "تأكيد|نعم",
+      "reject": "رفض|لا"
+    },
+    "confirmPrompt": "{action}. قل تأكيد أو رفض.",
+    "confirmRepeat": "لم أسمع ذلك. قل تأكيد أو رفض.",
+    "confirmUseScreen": "يرجى الإجابة على الشاشة.",
+    "questionOnScreen": "{question} يرجى الإجابة على الشاشة."
   }
 }

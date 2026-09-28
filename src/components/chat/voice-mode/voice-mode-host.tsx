@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
+  useAcpActions,
   useAcpEvent,
   useConnectionStore,
 } from "@/contexts/acp-connections-context"
@@ -41,6 +42,7 @@ import {
   type UtteranceRecorder,
 } from "@/lib/voice-mode/utterance-recorder"
 import { createVad, type VadEvent, type VadState } from "@/lib/voice-mode/vad"
+import { matchVoiceCommand } from "@/lib/voice-mode/voice-commands"
 import {
   getVoiceModeState,
   patchVoiceMode,
@@ -91,6 +93,10 @@ function isEditableTarget(target: EventTarget | null): boolean {
 
 const noCommand = () => false
 
+// codeg's assistant confirmation cards (assistant_tools.rs) always use this
+// header; the agent's own ask_user_question must never be answered by voice.
+const ASSISTANT_CONFIRM_HEADER = "Confirm"
+
 export function VoiceModeHost({
   matchCommand = noCommand,
 }: VoiceModeHostProps) {
@@ -99,6 +105,7 @@ export function VoiceModeHost({
   const locale = useLocale()
   const connections = useConnectionStore()
   const assistant = useAssistantSession()
+  const { cancel, answerQuestion } = useAcpActions()
 
   const runRef = useRef(0)
   const frontendRef = useRef<AudioFrontend | null>(null)
@@ -165,6 +172,35 @@ export function VoiceModeHost({
     send(text)
   }
 
+  const speakNotice = (text: string) => {
+    const options = speakRef.current
+    if (!options) return
+    debugRef.current?.spoken.push(text)
+    log(`speak:${text}`)
+    // A notice during a live reply (a confirmation card arrives mid-turn)
+    // restarts that turn's stream so the rest of the reply is still spoken.
+    const live = turnRef.current
+    if (live && !live.complete) {
+      live.spoken.push(text)
+      beginSpeechStream(live.id, options)
+      enqueueSpeech(live.id, text)
+      return
+    }
+    const id = `voice-notice-${Date.now()}`
+    turnRef.current = {
+      id,
+      stream: null,
+      spoken: [text],
+      complete: true,
+    }
+    beginSpeechStream(id, options)
+    enqueueSpeech(id, text)
+    endSpeechStream(id)
+  }
+
+  const phaseAfterConfirmation = () =>
+    turnRef.current && !turnRef.current.complete ? "waiting" : "listening"
+
   const handleTranscript = (text: string) => {
     const trimmed = text.trim()
     if (!trimmed) {
@@ -173,6 +209,79 @@ export function VoiceModeHost({
     }
     log(`heard:${trimmed}`)
     if (matchCommand(trimmed)) return
+
+    const { assistant: session } = getVoiceModeState()
+    const conn = session
+      ? connections.getConnection(session.connectionId)
+      : null
+    const pq = conn?.pendingAskQuestion
+
+    let isConfirming = false
+    if (pq) {
+      const q = pq.questions[0]
+      isConfirming =
+        pq.questions.length === 1 &&
+        q.options.length === 2 &&
+        q.header === ASSISTANT_CONFIRM_HEADER
+    }
+
+    const matchPhase = isConfirming ? "confirming" : getVoiceModeState().phase
+
+    const phrases = {
+      stop: t("commands.stop"),
+      cancel: t("commands.cancel"),
+      repeat: t("commands.repeat"),
+      exit: t("commands.exit"),
+      confirm: t("commands.confirm"),
+      reject: t("commands.reject"),
+    }
+    const cmd = matchVoiceCommand(trimmed, phrases, matchPhase)
+
+    if (cmd === "stop") {
+      stopSpeech()
+      settleAfterUtterance()
+      return
+    }
+    if (cmd === "cancel") {
+      if (session) void cancel(session.connectionId)
+      stopSpeech()
+      settleAfterUtterance()
+      return
+    }
+    if (cmd === "repeat") {
+      const { lastSpoken } = getVoiceModeState()
+      if (lastSpoken) speakNotice(lastSpoken)
+      else settleAfterUtterance()
+      return
+    }
+    if (cmd === "exit") {
+      stop()
+      return
+    }
+
+    if (isConfirming && session && pq) {
+      if (cmd === "confirm" || cmd === "reject") {
+        const q = pq.questions[0]
+        const label =
+          cmd === "confirm" ? q.options[0].label : q.options[1].label
+        void answerQuestion(session.connectionId, pq.question_id, {
+          answers: [{ questionId: q.id, labels: [label] }],
+          declined: false,
+        })
+        setVoicePhase(phaseAfterConfirmation())
+        return
+      }
+      nonMatchCountRef.current += 1
+      if (nonMatchCountRef.current >= 2) {
+        speakNotice(t("confirmUseScreen"))
+        setVoicePhase("listening")
+      } else {
+        speakNotice(t("confirmRepeat"))
+        setVoicePhase("confirming")
+      }
+      return
+    }
+
     submit(trimmed)
   }
 
@@ -300,11 +409,92 @@ export function VoiceModeHost({
     }
   }
 
+  const nonMatchCountRef = useRef(0)
+  const lastQuestionIdRef = useRef("")
+
+  useEffect(() => {
+    let unmounted = false
+    let connUnsubscribe: (() => void) | null = null
+    let currentConnId = ""
+
+    const checkAssistant = () => {
+      if (unmounted) return
+      const session = getVoiceModeState().assistant
+      const connId = session?.connectionId ?? ""
+      if (connId === currentConnId) return
+
+      if (connUnsubscribe) connUnsubscribe()
+      currentConnId = connId
+
+      if (connId) {
+        connUnsubscribe = connections.subscribeKey(connId, () => {
+          const conn = connections.getConnection(connId)
+          if (!conn) return
+          const pq = conn.pendingAskQuestion
+          if (!pq) {
+            lastQuestionIdRef.current = ""
+            nonMatchCountRef.current = 0
+            if (getVoiceModeState().phase === "confirming") {
+              setVoicePhase(handlersRef.current.phaseAfterConfirmation())
+            }
+            return
+          }
+          if (pq.question_id === lastQuestionIdRef.current) return
+          lastQuestionIdRef.current = pq.question_id
+          nonMatchCountRef.current = 0
+
+          const q = pq.questions[0]
+          const isConfirm =
+            pq.questions.length === 1 &&
+            q.options.length === 2 &&
+            q.header === ASSISTANT_CONFIRM_HEADER
+
+          if (isConfirm) {
+            stopSpeech()
+            setVoicePhase("confirming")
+            handlersRef.current.speakNotice(
+              t("confirmPrompt", { action: q.question.slice(0, 200) })
+            )
+          } else {
+            handlersRef.current.speakNotice(
+              t("questionOnScreen", { question: q.question })
+            )
+          }
+        })
+      } else {
+        connUnsubscribe = null
+      }
+    }
+
+    const unsubVoice = subscribeVoiceMode(checkAssistant)
+    checkAssistant()
+
+    return () => {
+      unmounted = true
+      unsubVoice()
+      if (connUnsubscribe) connUnsubscribe()
+    }
+  }, [connections, t])
+
   const onVadEventRef = useRef(onVadEvent)
-  const handlersRef = useRef({ start, stop, send, log })
+  const handlersRef = useRef({
+    start,
+    stop,
+    send,
+    log,
+    speakNotice,
+    phaseAfterConfirmation,
+  })
   useEffect(() => {
     onVadEventRef.current = onVadEvent
-    handlersRef.current = { start, stop, send, log }
+    handlersRef.current = {
+      start,
+      stop,
+      send,
+      log,
+      speakNotice,
+      phaseAfterConfirmation,
+    }
   })
 
   useAcpEvent((envelope: EventEnvelope) => {

@@ -6607,6 +6607,18 @@
     "startFailed": "音声モードを開始できませんでした：{message}",
     "sendFailed": "アシスタントに送信できませんでした：{message}",
     "transcribeFailed": "発話を文字起こしできませんでした：{message}",
-    "voiceTurnEndedEmpty": "アシスタントは返信せずに終了しました。"
+    "voiceTurnEndedEmpty": "アシスタントは返信せずに終了しました。",
+    "commands": {
+      "stop": "ストップ|停止",
+      "cancel": "キャンセル",
+      "repeat": "リピート|繰り返して",
+      "exit": "終了",
+      "confirm": "確認|はい",
+      "reject": "拒否|いいえ"
+    },
+    "confirmPrompt": "{action}。「確認」または「拒否」と言ってください。",
+    "confirmRepeat": "聞き取れませんでした。「確認」または「拒否」と言ってください。",
+    "confirmUseScreen": "画面で回答してください。",
+    "questionOnScreen": "{question} 画面で回答してください。"
   }
 }

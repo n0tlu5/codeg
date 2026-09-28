@@ -6607,6 +6607,18 @@
     "startFailed": "Voice mode could not start: {message}",
     "sendFailed": "Could not send to the assistant: {message}",
     "transcribeFailed": "Could not transcribe what you said: {message}",
-    "voiceTurnEndedEmpty": "The assistant finished without a reply."
+    "voiceTurnEndedEmpty": "The assistant finished without a reply.",
+    "commands": {
+      "stop": "stop",
+      "cancel": "cancel",
+      "repeat": "repeat",
+      "exit": "exit",
+      "confirm": "confirm|yes",
+      "reject": "reject|no"
+    },
+    "confirmPrompt": "{action}. Say confirm or reject.",
+    "confirmRepeat": "I didn't catch that. Say confirm or reject.",
+    "confirmUseScreen": "Please answer on screen.",
+    "questionOnScreen": "{question} Please answer on screen."
   }
 }

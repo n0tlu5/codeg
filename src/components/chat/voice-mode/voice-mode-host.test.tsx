@@ -16,7 +16,10 @@ import {
 const acp = vi.hoisted(() => ({
   handler: null as ((envelope: EventEnvelope) => void) | null,
   status: new Map<string, string>(),
+  pendingAskQuestion: null as unknown,
+  triggerSubscribe: null as (() => void) | null,
   actions: {
+    answerQuestion: vi.fn(async () => {}),
     sendPrompt: vi.fn(async () => {}),
     cancel: vi.fn(),
     attachDelegationChild: vi.fn(),
@@ -29,7 +32,19 @@ vi.mock("@/contexts/acp-connections-context", () => ({
   useAcpActions: () => acp.actions,
   useConnectionStore: () => ({
     getConnection: (key: string) =>
-      acp.status.has(key) ? { status: acp.status.get(key) } : undefined,
+      acp.status.has(key)
+        ? {
+            status: acp.status.get(key),
+            pendingAskQuestion: acp.pendingAskQuestion,
+          }
+        : undefined,
+    subscribeKey: (_key: string, cb: () => void) => {
+      cb()
+      acp.triggerSubscribe = cb
+      return () => {
+        acp.triggerSubscribe = null
+      }
+    },
   }),
   useAcpEvent: (handler: (envelope: EventEnvelope) => void) => {
     acp.handler = handler
@@ -212,6 +227,7 @@ beforeEach(() => {
   resetVoiceModeStoreForTests()
   acp.handler = null
   acp.status.clear()
+  acp.pendingAskQuestion = null
   player.drained.clear()
   recorder.pending.length = 0
   front.onVadEvent = null
@@ -458,5 +474,213 @@ describe("VoiceModeHost", () => {
     } finally {
       window.localStorage.removeItem("codeg:voice-debug")
     }
+  })
+
+  it("handles voice commands correctly", async () => {
+    acp.status.set("assistant-conn", "connected")
+    await startVoiceMode()
+
+    // Stop command
+    await say("stop")
+    expect(player.stopSpeech).toHaveBeenCalled()
+    expect(acp.actions.sendPrompt).not.toHaveBeenCalled()
+    expect(getVoiceModeState().phase).toBe("listening")
+
+    // Cancel command
+    await say("cancel")
+    expect(acp.actions.cancel).toHaveBeenCalledWith("assistant-conn")
+    expect(player.stopSpeech).toHaveBeenCalled()
+    expect(acp.actions.sendPrompt).not.toHaveBeenCalled()
+
+    // Repeat command
+    await say("hello there") // sets turnRef
+    delta("hello. ")
+    turnComplete()
+    drain()
+    player.enqueueSpeech.mockClear()
+    await say("repeat")
+    expect(player.enqueueSpeech).toHaveBeenCalledWith(
+      expect.any(String),
+      "hello."
+    )
+
+    // Exit command
+    await say("exit")
+    expect(getVoiceModeState().phase).toBe("off")
+  })
+
+  it("handles spoken confirmations correctly", async () => {
+    acp.status.set("assistant-conn", "connected")
+    await startVoiceMode()
+
+    const confirmQ = {
+      question_id: "q1",
+      questions: [
+        {
+          id: "sq1",
+          question: "Proceed?",
+          header: "Confirm",
+          options: [{ label: "Yes" }, { label: "No" }],
+        },
+      ],
+    }
+
+    // Set pending question
+    act(() => {
+      acp.pendingAskQuestion = confirmQ
+      acp.triggerSubscribe?.()
+    })
+
+    expect(getVoiceModeState().phase).toBe("confirming")
+    expect(player.enqueueSpeech).toHaveBeenCalledWith(
+      expect.any(String),
+      enMessages.VoiceMode.confirmPrompt.replace("{action}", "Proceed?")
+    )
+
+    // Confirm picks options[0]
+    await say("confirm")
+    expect(acp.actions.answerQuestion).toHaveBeenCalledWith(
+      "assistant-conn",
+      "q1",
+      { answers: [{ questionId: "sq1", labels: ["Yes"] }], declined: false }
+    )
+    expect(getVoiceModeState().phase).toBe("listening")
+    expect(acp.actions.sendPrompt).not.toHaveBeenCalled()
+
+    // Reset and try reject
+    act(() => {
+      acp.pendingAskQuestion = { ...confirmQ, question_id: "q2" }
+      acp.triggerSubscribe?.()
+    })
+    expect(getVoiceModeState().phase).toBe("confirming")
+
+    // Reject picks options[1]
+    await say("reject")
+    expect(acp.actions.answerQuestion).toHaveBeenCalledWith(
+      "assistant-conn",
+      "q2",
+      { answers: [{ questionId: "sq1", labels: ["No"] }], declined: false }
+    )
+
+    // Reset and try non-matches
+    act(() => {
+      acp.pendingAskQuestion = { ...confirmQ, question_id: "q3" }
+      acp.triggerSubscribe?.()
+    })
+
+    // 1st non-match
+    await say("maybe")
+    expect(acp.actions.answerQuestion).not.toHaveBeenCalledWith(
+      "assistant-conn",
+      "q3",
+      expect.anything()
+    )
+    expect(player.enqueueSpeech).toHaveBeenCalledWith(
+      expect.any(String),
+      enMessages.VoiceMode.confirmRepeat
+    )
+    expect(getVoiceModeState().phase).toBe("confirming")
+
+    // 2nd non-match
+    await say("maybe again")
+    expect(acp.actions.answerQuestion).not.toHaveBeenCalledWith(
+      "assistant-conn",
+      "q3",
+      expect.anything()
+    )
+    expect(player.enqueueSpeech).toHaveBeenCalledWith(
+      expect.any(String),
+      enMessages.VoiceMode.confirmUseScreen
+    )
+    expect(getVoiceModeState().phase).toBe("listening")
+
+    // Answered by click
+    act(() => {
+      acp.pendingAskQuestion = { ...confirmQ, question_id: "q4" }
+      acp.triggerSubscribe?.()
+    })
+    expect(getVoiceModeState().phase).toBe("confirming")
+    act(() => {
+      acp.pendingAskQuestion = null
+      acp.triggerSubscribe?.()
+    })
+    expect(getVoiceModeState().phase).toBe("listening")
+  })
+
+  it("speaks a confirmation card that arrives during a reply", async () => {
+    acp.status.set("assistant-conn", "connected")
+    await startVoiceMode()
+    await say("tell the other tab to run ls")
+    delta("Let me check. ")
+    expect(getVoiceModeState().phase).toBe("speaking")
+    const prompt = enMessages.VoiceMode.confirmPrompt.replace(
+      "{action}",
+      "Send ls?"
+    )
+
+    act(() => {
+      acp.pendingAskQuestion = {
+        question_id: "q1",
+        questions: [
+          {
+            id: "sq1",
+            question: "Send ls?",
+            header: "Confirm",
+            options: [{ label: "Yes" }, { label: "No" }],
+          },
+        ],
+      }
+      acp.triggerSubscribe?.()
+    })
+    const turnId = vi.mocked(player.beginSpeechStream).mock.calls[0][0]
+    expect(getVoiceModeState().phase).toBe("confirming")
+    expect(player.beginSpeechStream).toHaveBeenLastCalledWith(
+      turnId,
+      expect.anything()
+    )
+    expect(player.enqueueSpeech).toHaveBeenLastCalledWith(turnId, prompt)
+
+    await say("confirm")
+    expect(acp.actions.answerQuestion).toHaveBeenCalledTimes(1)
+    expect(getVoiceModeState().phase).toBe("waiting")
+    delta("Sent. ")
+    expect(player.enqueueSpeech).toHaveBeenLastCalledWith(turnId, "Sent.")
+  })
+
+  it("does not answer non-confirmation questions by voice", async () => {
+    acp.status.set("assistant-conn", "connected")
+    await startVoiceMode()
+
+    const otherQ = {
+      question_id: "q1",
+      questions: [
+        {
+          id: "sq1",
+          question: "Which color?",
+          header: "Color",
+          options: [{ label: "Red" }, { label: "Blue" }],
+        },
+      ],
+    }
+
+    act(() => {
+      acp.pendingAskQuestion = otherQ
+      acp.triggerSubscribe?.()
+    })
+
+    expect(getVoiceModeState().phase).toBe("listening")
+    expect(player.enqueueSpeech).toHaveBeenCalledWith(
+      expect.any(String),
+      enMessages.VoiceMode.questionOnScreen.replace(
+        "{question}",
+        "Which color?"
+      )
+    )
+
+    acp.actions.sendPrompt.mockClear()
+
+    await say("Red")
+    expect(acp.actions.answerQuestion).not.toHaveBeenCalled()
+    expect(acp.actions.sendPrompt).toHaveBeenCalled()
   })
 })

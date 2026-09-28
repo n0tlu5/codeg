@@ -6607,6 +6607,18 @@
     "startFailed": "Sprachmodus konnte nicht starten: {message}",
     "sendFailed": "Senden an den Assistenten fehlgeschlagen: {message}",
     "transcribeFailed": "Das Gesagte konnte nicht transkribiert werden: {message}",
-    "voiceTurnEndedEmpty": "Der Assistent hat ohne Antwort beendet."
+    "voiceTurnEndedEmpty": "Der Assistent hat ohne Antwort beendet.",
+    "commands": {
+      "stop": "stopp",
+      "cancel": "abbrechen",
+      "repeat": "wiederholen",
+      "exit": "beenden",
+      "confirm": "bestätigen|ja",
+      "reject": "ablehnen|nein"
+    },
+    "confirmPrompt": "{action}. Sagen Sie bestätigen oder ablehnen.",
+    "confirmRepeat": "Ich habe das nicht verstanden. Sagen Sie bestätigen oder ablehnen.",
+    "confirmUseScreen": "Bitte antworten Sie auf dem Bildschirm.",
+    "questionOnScreen": "{question} Bitte antworten Sie auf dem Bildschirm."
   }
 }

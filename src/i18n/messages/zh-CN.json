@@ -6607,6 +6607,18 @@
     "startFailed": "语音模式无法启动：{message}",
     "sendFailed": "无法发送给助手：{message}",
     "transcribeFailed": "无法识别你说的话：{message}",
-    "voiceTurnEndedEmpty": "助手已结束，但没有回复。"
+    "voiceTurnEndedEmpty": "助手已结束，但没有回复。",
+    "commands": {
+      "stop": "停止",
+      "cancel": "取消",
+      "repeat": "重复",
+      "exit": "退出",
+      "confirm": "确认|是",
+      "reject": "拒绝|否"
+    },
+    "confirmPrompt": "{action}。请说确认或拒绝。",
+    "confirmRepeat": "我没听清。请说确认或拒绝。",
+    "confirmUseScreen": "请在屏幕上回答。",
+    "questionOnScreen": "{question} 请在屏幕上回答。"
   }
 }

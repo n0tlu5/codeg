@@ -6607,6 +6607,18 @@
     "startFailed": "음성 모드를 시작할 수 없습니다: {message}",
     "sendFailed": "어시스턴트에게 보낼 수 없습니다: {message}",
     "transcribeFailed": "말씀하신 내용을 받아쓸 수 없습니다: {message}",
-    "voiceTurnEndedEmpty": "어시스턴트가 답변 없이 종료했습니다."
+    "voiceTurnEndedEmpty": "어시스턴트가 답변 없이 종료했습니다.",
+    "commands": {
+      "stop": "정지",
+      "cancel": "취소",
+      "repeat": "반복",
+      "exit": "종료",
+      "confirm": "확인|예",
+      "reject": "거부|아니요"
+    },
+    "confirmPrompt": "{action}. 확인 또는 거부라고 말해주세요.",
+    "confirmRepeat": "잘 듣지 못했습니다. 확인 또는 거부라고 말해주세요.",
+    "confirmUseScreen": "화면에서 답변해주세요.",
+    "questionOnScreen": "{question} 화면에서 답변해주세요."
   }
 }

@@ -6607,6 +6607,18 @@
     "startFailed": "Impossible de démarrer le mode vocal : {message}",
     "sendFailed": "Impossible d'envoyer à l'assistant : {message}",
     "transcribeFailed": "Impossible de transcrire ce que vous avez dit : {message}",
-    "voiceTurnEndedEmpty": "L'assistant a terminé sans répondre."
+    "voiceTurnEndedEmpty": "L'assistant a terminé sans répondre.",
+    "commands": {
+      "stop": "stop|arrêter",
+      "cancel": "annuler",
+      "repeat": "répéter",
+      "exit": "quitter",
+      "confirm": "confirmer|oui",
+      "reject": "rejeter|non"
+    },
+    "confirmPrompt": "{action}. Dites confirmer ou rejeter.",
+    "confirmRepeat": "Je n'ai pas compris. Dites confirmer ou rejeter.",
+    "confirmUseScreen": "Veuillez répondre à l'écran.",
+    "questionOnScreen": "{question} Veuillez répondre à l'écran."
   }
 }

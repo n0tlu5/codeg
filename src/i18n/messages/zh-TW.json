@@ -6607,6 +6607,18 @@
     "startFailed": "語音模式無法啟動：{message}",
     "sendFailed": "無法傳送給助理：{message}",
     "transcribeFailed": "無法辨識你說的話：{message}",
-    "voiceTurnEndedEmpty": "助理已結束，但沒有回覆。"
+    "voiceTurnEndedEmpty": "助理已結束，但沒有回覆。",
+    "commands": {
+      "stop": "停止",
+      "cancel": "取消",
+      "repeat": "重複",
+      "exit": "退出",
+      "confirm": "確認|是",
+      "reject": "拒絕|否"
+    },
+    "confirmPrompt": "{action}。請說確認或拒絕。",
+    "confirmRepeat": "我沒聽清楚。請說確認或拒絕。",
+    "confirmUseScreen": "請在螢幕上回答。",
+    "questionOnScreen": "{question} 請在螢幕上回答。"
   }
 }
