@@ -75,6 +75,7 @@ describe("speech capabilities detection", () => {
       hasMediaDevices: true,
       isSecureContext: false,
     })
+    expect(caps.browserStt).toBe(false)
     expect(caps.mediaCapture).toBe(false)
     expect(caps.secureContext).toBe(false)
   })

@@ -72,14 +72,16 @@ export function detectSpeechCapabilities(
 
   const isUnsupportedDesktop =
     desktop && (plat === "windows" || plat === "linux")
-  const browserStt = hasRecognizer && !isUnsupportedDesktop
-
   const secureContext =
     typeof env?.isSecureContext === "boolean"
       ? env.isSecureContext
       : typeof window !== "undefined"
         ? Boolean(window.isSecureContext)
         : false
+
+  // Chromium exposes SpeechRecognition on insecure origins too, but it cannot
+  // open the microphone there and fails at once with "audio-capture".
+  const browserStt = hasRecognizer && !isUnsupportedDesktop && secureContext
 
   let hasGetUserMedia = false
   if (typeof env?.hasMediaDevices === "boolean") {
