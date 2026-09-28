@@ -22,6 +22,13 @@ import {
 } from "@/lib/speech-capabilities"
 import { useSpeechPrefs } from "@/lib/speech-prefs"
 
+import {
+  blobToBase64,
+  pickRecorderMimeType,
+  recognitionCtor,
+  type RecognitionLike,
+} from "@/lib/speech-engines"
+
 export type SpeechInputStatus =
   | "idle"
   | "listening"
@@ -56,39 +63,8 @@ export interface UseSpeechInputResult {
 
 export const MAX_RECORDING_MS = 120_000
 
-const RECORDER_MIME_TYPES = [
-  "audio/webm;codecs=opus",
-  "audio/ogg;codecs=opus",
-  "audio/mp4",
-]
-
-// The DOM lib shipped with TypeScript has no Web Speech API types.
-interface RecognitionAlternativeLike {
-  transcript: string
-}
-interface RecognitionResultLike {
-  readonly isFinal: boolean
-  readonly length: number
-  readonly [index: number]: RecognitionAlternativeLike
-}
-interface RecognitionEventLike {
-  resultIndex: number
-  results: ArrayLike<RecognitionResultLike>
-}
-interface RecognitionLike {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  onresult: ((event: RecognitionEventLike) => void) | null
-  onerror: ((event: { error: string }) => void) | null
-  onend: (() => void) | null
-  start(): void
-  stop(): void
-  abort(): void
-}
-type RecognitionCtor = new () => RecognitionLike
-
 const subscribeNever = () => () => {}
+
 const onClient = () => true
 const onServer = () => false
 
@@ -103,33 +79,6 @@ type Session =
       language: string
       timer: ReturnType<typeof setTimeout>
     }
-
-function recognitionCtor(): RecognitionCtor | null {
-  if (typeof window === "undefined") return null
-  const win = window as unknown as Record<string, unknown>
-  const ctor = win.SpeechRecognition ?? win.webkitSpeechRecognition
-  return typeof ctor === "function" ? (ctor as RecognitionCtor) : null
-}
-
-function pickRecorderMimeType(): string | undefined {
-  const isTypeSupported = MediaRecorder.isTypeSupported
-  if (typeof isTypeSupported !== "function") return undefined
-  return RECORDER_MIME_TYPES.find((type) =>
-    isTypeSupported.call(MediaRecorder, type)
-  )
-}
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const dataUrl = String(reader.result ?? "")
-      resolve(dataUrl.slice(dataUrl.indexOf(",") + 1))
-    }
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(blob)
-  })
-}
 
 function releaseSession(session: Session) {
   if (session.kind === "browser") {

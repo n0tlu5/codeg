@@ -20,6 +20,13 @@ let prefs: SpeechPrefs = {
     rate: 1,
     autoRead: false,
   },
+  voiceMode: {
+    enabled: false,
+    endSilenceMs: 900,
+    bargeIn: true,
+    announce: "all",
+    voiceApprovals: false,
+  },
 }
 vi.mock("@/lib/speech-prefs", () => ({ useSpeechPrefs: () => prefs }))
 
@@ -126,6 +133,13 @@ beforeEach(() => {
       rate: 1,
       autoRead: false,
     },
+    voiceMode: {
+      enabled: false,
+      endSilenceMs: 900,
+      bargeIn: true,
+      announce: "all",
+      voiceApprovals: false,
+    },
   }
   caps = { browserStt: true, mediaCapture: true, secureContext: true }
   FakeRecognition.instances = []
@@ -226,6 +240,13 @@ describe("useSpeechInput - cloud engine", () => {
         browserVoiceUri: "",
         rate: 1,
         autoRead: false,
+      },
+      voiceMode: {
+        enabled: false,
+        endSilenceMs: 900,
+        bargeIn: true,
+        announce: "all",
+        voiceApprovals: false,
       },
     }
   })

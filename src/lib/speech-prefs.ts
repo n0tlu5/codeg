@@ -37,6 +37,15 @@ export interface SpeechOutputPrefs {
 export interface SpeechPrefs {
   input: SpeechInputPrefs
   output: SpeechOutputPrefs
+  voiceMode: VoiceModePrefs
+}
+
+export interface VoiceModePrefs {
+  enabled: boolean
+  endSilenceMs: number
+  bargeIn: boolean
+  announce: "off" | "background" | "all"
+  voiceApprovals: boolean
 }
 
 export const MIN_SPEECH_RATE = 0.5
@@ -55,12 +64,20 @@ export const DEFAULT_SPEECH_PREFS: SpeechPrefs = {
     rate: 1,
     autoRead: false,
   },
+  voiceMode: {
+    enabled: false,
+    endSilenceMs: 900,
+    bargeIn: true,
+    announce: "all",
+    voiceApprovals: false,
+  },
 }
 
 function defaultPrefs(): SpeechPrefs {
   return {
     input: { ...DEFAULT_SPEECH_PREFS.input },
     output: { ...DEFAULT_SPEECH_PREFS.output },
+    voiceMode: { ...DEFAULT_SPEECH_PREFS.voiceMode },
   }
 }
 
@@ -120,6 +137,33 @@ function parseOutput(raw: unknown): SpeechOutputPrefs {
   }
 }
 
+function parseVoiceMode(raw: unknown): VoiceModePrefs {
+  const defaults = DEFAULT_SPEECH_PREFS.voiceMode
+  const source = asRecord(raw)
+  if (!source) return { ...defaults }
+  return {
+    enabled:
+      typeof source.enabled === "boolean" ? source.enabled : defaults.enabled,
+    endSilenceMs:
+      typeof source.endSilenceMs === "number" &&
+      Number.isFinite(source.endSilenceMs)
+        ? Math.min(2500, Math.max(500, source.endSilenceMs))
+        : defaults.endSilenceMs,
+    bargeIn:
+      typeof source.bargeIn === "boolean" ? source.bargeIn : defaults.bargeIn,
+    announce:
+      source.announce === "off" ||
+      source.announce === "background" ||
+      source.announce === "all"
+        ? source.announce
+        : defaults.announce,
+    voiceApprovals:
+      typeof source.voiceApprovals === "boolean"
+        ? source.voiceApprovals
+        : defaults.voiceApprovals,
+  }
+}
+
 /**
  * Merge a stored blob over the defaults, field by field. Every field is
  * validated independently so a partial write from an older build (or a
@@ -131,6 +175,7 @@ export function parseSpeechPrefs(raw: unknown): SpeechPrefs {
   return {
     input: parseInput(source?.input),
     output: parseOutput(source?.output),
+    voiceMode: parseVoiceMode(source?.voiceMode),
   }
 }
 
@@ -149,6 +194,7 @@ export function loadSpeechPrefs(): SpeechPrefs {
 export function saveSpeechPrefs(update: {
   input?: SpeechInputPrefs
   output?: SpeechOutputPrefs
+  voiceMode?: VoiceModePrefs
 }): void {
   if (typeof window === "undefined") return
   const prefs = parseSpeechPrefs({ ...loadSpeechPrefs(), ...update })

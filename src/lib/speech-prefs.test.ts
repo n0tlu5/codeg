@@ -30,6 +30,13 @@ describe("speech preferences", () => {
         rate: 1,
         autoRead: false,
       },
+      voiceMode: {
+        enabled: false,
+        endSilenceMs: 900,
+        bargeIn: true,
+        announce: "all",
+        voiceApprovals: false,
+      },
     })
     expect(loadSpeechPrefs()).toEqual(DEFAULT_SPEECH_PREFS)
   })
@@ -54,6 +61,13 @@ describe("speech preferences", () => {
         rate: 1.5,
         autoRead: true,
       },
+      voiceMode: {
+        enabled: true,
+        endSilenceMs: 1500,
+        bargeIn: false,
+        announce: "background" as const,
+        voiceApprovals: true,
+      },
     }
     saveSpeechPrefs(custom)
     expect(loadSpeechPrefs()).toEqual(custom)
@@ -66,12 +80,24 @@ describe("speech preferences", () => {
     saveSpeechPrefs({
       input: { enabled: true, engine: "browser", language: "" },
     })
+    saveSpeechPrefs({
+      voiceMode: {
+        ...DEFAULT_SPEECH_PREFS.voiceMode,
+        enabled: true,
+        endSilenceMs: 1200,
+      },
+    })
     const loaded = loadSpeechPrefs()
     expect(loaded.input.enabled).toBe(true)
     expect(loaded.output).toEqual({
       ...DEFAULT_SPEECH_PREFS.output,
       enabled: true,
       rate: 1.25,
+    })
+    expect(loaded.voiceMode).toEqual({
+      ...DEFAULT_SPEECH_PREFS.voiceMode,
+      enabled: true,
+      endSilenceMs: 1200,
     })
   })
 
@@ -92,6 +118,32 @@ describe("speech preferences", () => {
     expect(parseSpeechPrefs({ output: { rate: Number.NaN } }).output.rate).toBe(
       1
     )
+  })
+
+  it("parses voiceMode per field and clamps endSilenceMs", () => {
+    const parsed = parseSpeechPrefs({
+      voiceMode: {
+        enabled: "yes",
+        endSilenceMs: "1000",
+        bargeIn: 1,
+        announce: "invalid_option",
+        voiceApprovals: null,
+      },
+    })
+    expect(parsed.voiceMode).toEqual(DEFAULT_SPEECH_PREFS.voiceMode)
+
+    expect(
+      parseSpeechPrefs({ voiceMode: { endSilenceMs: 100 } }).voiceMode
+        .endSilenceMs
+    ).toBe(500)
+    expect(
+      parseSpeechPrefs({ voiceMode: { endSilenceMs: 3000 } }).voiceMode
+        .endSilenceMs
+    ).toBe(2500)
+    expect(
+      parseSpeechPrefs({ voiceMode: { endSilenceMs: Number.NaN } }).voiceMode
+        .endSilenceMs
+    ).toBe(900)
   })
 
   it("falls back per-field for invalid or missing values", () => {
