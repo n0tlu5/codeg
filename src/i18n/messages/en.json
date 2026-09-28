@@ -6619,6 +6619,11 @@
     "confirmPrompt": "{action}. Say confirm or reject.",
     "confirmRepeat": "I didn't catch that. Say confirm or reject.",
     "confirmUseScreen": "Please answer on screen.",
-    "questionOnScreen": "{question} Please answer on screen."
+    "questionOnScreen": "{question} Please answer on screen.",
+    "announce": {
+      "finished": "{agent} finished: {title}.",
+      "needsApproval": "{agent} needs your approval: {title}.",
+      "failed": "{agent} failed: {title}."
+    }
   }
 }

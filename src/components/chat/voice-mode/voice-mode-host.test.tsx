@@ -80,6 +80,8 @@ vi.mock("@/lib/speech-prefs", () => ({
       voiceApprovals: false,
     },
   }),
+  // Announcements have their own tests (voice-announcer.test.tsx).
+  useSpeechPrefs: () => ({ voiceMode: { announce: "off" } }),
 }))
 
 const player = vi.hoisted(() => ({

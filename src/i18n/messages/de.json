@@ -6619,6 +6619,11 @@
     "confirmPrompt": "{action}. Sagen Sie bestätigen oder ablehnen.",
     "confirmRepeat": "Ich habe das nicht verstanden. Sagen Sie bestätigen oder ablehnen.",
     "confirmUseScreen": "Bitte antworten Sie auf dem Bildschirm.",
-    "questionOnScreen": "{question} Bitte antworten Sie auf dem Bildschirm."
+    "questionOnScreen": "{question} Bitte antworten Sie auf dem Bildschirm.",
+    "announce": {
+      "finished": "{agent} ist fertig: {title}.",
+      "needsApproval": "{agent} braucht deine Freigabe: {title}.",
+      "failed": "{agent} ist fehlgeschlagen: {title}."
+    }
   }
 }

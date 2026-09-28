@@ -6619,6 +6619,11 @@
     "confirmPrompt": "{action}。「確認」または「拒否」と言ってください。",
     "confirmRepeat": "聞き取れませんでした。「確認」または「拒否」と言ってください。",
     "confirmUseScreen": "画面で回答してください。",
-    "questionOnScreen": "{question} 画面で回答してください。"
+    "questionOnScreen": "{question} 画面で回答してください。",
+    "announce": {
+      "finished": "{agent} が完了しました：{title}。",
+      "needsApproval": "{agent} が承認を待っています：{title}。",
+      "failed": "{agent} が失敗しました：{title}。"
+    }
   }
 }

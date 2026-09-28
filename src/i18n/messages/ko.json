@@ -6619,6 +6619,11 @@
     "confirmPrompt": "{action}. 확인 또는 거부라고 말해주세요.",
     "confirmRepeat": "잘 듣지 못했습니다. 확인 또는 거부라고 말해주세요.",
     "confirmUseScreen": "화면에서 답변해주세요.",
-    "questionOnScreen": "{question} 화면에서 답변해주세요."
+    "questionOnScreen": "{question} 화면에서 답변해주세요.",
+    "announce": {
+      "finished": "{agent} 완료: {title}.",
+      "needsApproval": "{agent} 승인이 필요합니다: {title}.",
+      "failed": "{agent} 실패: {title}."
+    }
   }
 }

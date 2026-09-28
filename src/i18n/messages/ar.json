@@ -6619,6 +6619,11 @@
     "confirmPrompt": "{action}. قل تأكيد أو رفض.",
     "confirmRepeat": "لم أسمع ذلك. قل تأكيد أو رفض.",
     "confirmUseScreen": "يرجى الإجابة على الشاشة.",
-    "questionOnScreen": "{question} يرجى الإجابة على الشاشة."
+    "questionOnScreen": "{question} يرجى الإجابة على الشاشة.",
+    "announce": {
+      "finished": "انتهى {agent}: {title}.",
+      "needsApproval": "{agent} بحاجة إلى موافقتك: {title}.",
+      "failed": "فشل {agent}: {title}."
+    }
   }
 }

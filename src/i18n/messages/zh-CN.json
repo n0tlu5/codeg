@@ -6619,6 +6619,11 @@
     "confirmPrompt": "{action}。请说确认或拒绝。",
     "confirmRepeat": "我没听清。请说确认或拒绝。",
     "confirmUseScreen": "请在屏幕上回答。",
-    "questionOnScreen": "{question} 请在屏幕上回答。"
+    "questionOnScreen": "{question} 请在屏幕上回答。",
+    "announce": {
+      "finished": "{agent} 已完成：{title}。",
+      "needsApproval": "{agent} 需要你批准：{title}。",
+      "failed": "{agent} 失败：{title}。"
+    }
   }
 }

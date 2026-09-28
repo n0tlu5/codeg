@@ -500,6 +500,16 @@ async fn async_main() -> ExitCode {
         pet_state_handle,
     ));
 
+    // Active-session aggregator (`pet://sessions`). Server mode has no pet
+    // window, but voice mode's workspace announcements read the same payload.
+    tokio::spawn(codeg_lib::pet_sessions::pet_sessions_subscriber_task(
+        state.acp_event_bus.clone(),
+        state.event_broadcaster.clone(),
+        state.emitter.clone(),
+        state.connection_manager.clone_ref(),
+        state.db.conn.clone(),
+    ));
+
     // Spawn the idle sweep so connections abandoned without an explicit
     // disconnect (e.g. browser tab closed, panic survivors) are reaped.
     // Override the 60-second default via `CODEG_ACP_IDLE_TIMEOUT_SECS`

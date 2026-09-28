@@ -922,7 +922,8 @@ mod tauri_app {
                 // lifecycle events and emits `pet://sessions` for the sprite
                 // badge + panel window. Shares the same buses as the ambient
                 // mapper but is kept separate so the DB-free ambient task stays
-                // simple; desktop-only (server mode has no pet window).
+                // simple. Server mode spawns it too (codeg_server.rs) for
+                // voice mode's workspace announcements.
                 {
                     let bus = app
                         .state::<std::sync::Arc<crate::acp::InternalEventBus>>()

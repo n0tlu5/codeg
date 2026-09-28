@@ -29,7 +29,7 @@ import {
   stopSpeech,
   type SpeakOptions,
 } from "@/lib/speech-player"
-import { getSpeechPrefs } from "@/lib/speech-prefs"
+import { getSpeechPrefs, useSpeechPrefs } from "@/lib/speech-prefs"
 import type { EventEnvelope } from "@/lib/types"
 import { useAssistantSession } from "@/lib/voice-mode/assistant-session"
 import {
@@ -43,6 +43,8 @@ import {
 } from "@/lib/voice-mode/utterance-recorder"
 import { createVad, type VadEvent, type VadState } from "@/lib/voice-mode/vad"
 import { matchVoiceCommand } from "@/lib/voice-mode/voice-commands"
+
+import { VoiceAnnouncer } from "./voice-announcer"
 import {
   getVoiceModeState,
   patchVoiceMode,
@@ -103,6 +105,7 @@ export function VoiceModeHost({
   const t = useTranslations("VoiceMode")
   const tMessages = useTranslations("Folder.chat.messageList")
   const locale = useLocale()
+  const announce = useSpeechPrefs().voiceMode.announce
   const connections = useConnectionStore()
   const assistant = useAssistantSession()
   const { cancel, answerQuestion } = useAcpActions()
@@ -611,5 +614,10 @@ export function VoiceModeHost({
     }
   }, [])
 
-  return null
+  return (
+    <VoiceAnnouncer
+      announce={announce}
+      speak={(text) => handlersRef.current.speakNotice(text)}
+    />
+  )
 }
