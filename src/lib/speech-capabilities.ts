@@ -43,6 +43,16 @@ export const LOCALE_TO_BCP47: Record<string, string> = {
   ar: "ar-SA",
 }
 
+// Set once a recognizer that exists failed to run at all. Chromium builds
+// without Google's speech service (Chromium, Helium, ungoogled builds) expose
+// SpeechRecognition but fail every start at once with "audio-capture" or
+// "network"; from then on this page treats browser recognition as missing.
+let browserRecognitionBroken = false
+
+export function markBrowserRecognitionBroken(broken = true): void {
+  browserRecognitionBroken = broken
+}
+
 export function detectSpeechCapabilities(
   env?: SpeechCapabilitiesEnv
 ): SpeechCapabilities {
@@ -81,7 +91,11 @@ export function detectSpeechCapabilities(
 
   // Chromium exposes SpeechRecognition on insecure origins too, but it cannot
   // open the microphone there and fails at once with "audio-capture".
-  const browserStt = hasRecognizer && !isUnsupportedDesktop && secureContext
+  const browserStt =
+    hasRecognizer &&
+    !isUnsupportedDesktop &&
+    secureContext &&
+    !browserRecognitionBroken
 
   let hasGetUserMedia = false
   if (typeof env?.hasMediaDevices === "boolean") {

@@ -3177,6 +3177,7 @@
         "speechUnavailableNoMic": "الإدخال الصوتي غير متاح: لم يُعثر على ميكروفون",
         "speechUnavailableCloud": "يتطلب الإدخال الصوتي مفتاح API سحابيًا (الإعدادات ← الصوت)",
         "speechCloudAuthFailed": "رفضت خدمة الصوت مفتاح API",
+        "speechBrowserUnsupported": "لا يستطيع هذا المتصفح التعرّف على الكلام (إصدارات Chromium بدون خدمة Google الصوتية). اضبط مفتاح API سحابيًا في الإعدادات ← الكلام، أو استخدم Chrome أو Edge.",
         "speechFailed": "فشل الإدخال الصوتي"
       },
       "messageQueue": {
@@ -6647,6 +6648,7 @@
     "startFailed": "تعذر بدء الوضع الصوتي: {message}",
     "sendFailed": "تعذر الإرسال إلى المساعد: {message}",
     "transcribeFailed": "تعذر تحويل ما قلته إلى نص: {message}",
+    "browserRecognitionUnavailable": "لا يستطيع هذا المتصفح التعرّف على الكلام. اضبط مفتاح API سحابيًا في الإعدادات ← الكلام لاستخدام وضع الصوت هنا، أو استخدم Chrome أو Edge.",
     "voiceTurnEndedEmpty": "أنهى المساعد دون رد.",
     "commands": {
       "stop": "قف",

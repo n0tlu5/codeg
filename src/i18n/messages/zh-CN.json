@@ -3177,6 +3177,7 @@
         "speechUnavailableNoMic": "语音输入不可用：未找到麦克风",
         "speechUnavailableCloud": "语音输入需要云端 API 密钥（设置 → 语音）",
         "speechCloudAuthFailed": "语音服务拒绝了该 API 密钥",
+        "speechBrowserUnsupported": "此浏览器无法识别语音（不含 Google 语音服务的 Chromium 版本）。请在 设置 → 语音 中配置云端 API 密钥，或使用 Chrome / Edge。",
         "speechFailed": "语音输入失败"
       },
       "messageQueue": {
@@ -6647,6 +6648,7 @@
     "startFailed": "语音模式无法启动：{message}",
     "sendFailed": "无法发送给助手：{message}",
     "transcribeFailed": "无法识别你说的话：{message}",
+    "browserRecognitionUnavailable": "此浏览器无法识别语音。请在 设置 → 语音 中配置云端 API 密钥以在此使用语音模式，或使用 Chrome / Edge。",
     "voiceTurnEndedEmpty": "助手已结束，但没有回复。",
     "commands": {
       "stop": "停止",

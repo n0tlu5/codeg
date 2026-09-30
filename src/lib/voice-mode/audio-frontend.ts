@@ -57,8 +57,15 @@ export async function startAudioFrontend({
   })
 
   // ONLY AudioContext allowed in the app for voice mode.
-  const ctx = new AudioContext()
-  const source = ctx.createMediaStreamSource(stream)
+  let ctx: AudioContext
+  let source: MediaStreamAudioSourceNode
+  try {
+    ctx = new AudioContext()
+    source = ctx.createMediaStreamSource(stream)
+  } catch (error) {
+    stream.getTracks().forEach((track) => track.stop())
+    throw error
+  }
 
   let node: AudioWorkletNode | null = null
   let url = ""

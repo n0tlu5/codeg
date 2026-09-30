@@ -15,17 +15,26 @@ import { stopSpeech } from "@/lib/speech-player"
 import { extractAppCommandError } from "@/lib/app-error"
 import {
   detectSpeechCapabilities,
+  markBrowserRecognitionBroken,
   resolveInputEngine,
   resolveSpeechLanguage,
   type InputEngineResolution,
   type SpeechCapabilities,
 } from "@/lib/speech-capabilities"
 import { useSpeechPrefs } from "@/lib/speech-prefs"
+import {
+  startAudioFrontend,
+  type AudioFrontend,
+} from "@/lib/voice-mode/audio-frontend"
+import { createVad } from "@/lib/voice-mode/vad"
 
 import {
   blobToBase64,
+  createRecognitionTextTracker,
+  isRecognitionServiceMissing,
   pickRecorderMimeType,
   recognitionCtor,
+  recognitionRepeatsText,
   type RecognitionLike,
 } from "@/lib/speech-engines"
 
@@ -38,6 +47,7 @@ export type SpeechInputStatus =
 export type SpeechInputError =
   | "mic-denied"
   | "engine-failed"
+  | "browser-unsupported"
   | "cloud-auth"
   | "cloud-not-configured"
 
@@ -73,6 +83,8 @@ type Session =
   | {
       kind: "cloud"
       stream: MediaStream
+      /** Watches the mic for the end of speech; null when Web Audio failed. */
+      frontend: AudioFrontend | null
       recorder: MediaRecorder
       chunks: Blob[]
       mimeType: string
@@ -94,6 +106,7 @@ function releaseSession(session: Session) {
   session.recorder.onstop = null
   if (session.recorder.state !== "inactive") session.recorder.stop()
   session.stream.getTracks().forEach((track) => track.stop())
+  void session.frontend?.stop()
 }
 
 function cloudErrorFromException(error: unknown): SpeechInputError {
@@ -204,6 +217,12 @@ export function useSpeechInput({
     [finish]
   )
 
+  // The browser engine hands over to startCloud when recognition turns out to
+  // have no speech service; a ref keeps startBrowser from depending on it.
+  const startCloudRef = useRef<
+    (generation: number, lang: string) => Promise<void>
+  >(() => Promise.resolve())
+
   const startBrowser = useCallback(
     (generation: number, lang: string) => {
       const Ctor = recognitionCtor()
@@ -215,23 +234,32 @@ export function useSpeechInput({
       recognition.continuous = true
       recognition.interimResults = true
       recognition.lang = lang
+      const tracker = createRecognitionTextTracker(recognitionRepeatsText())
+      let heard = false
       recognition.onresult = (event) => {
         if (generation !== generationRef.current) return
-        let interim = ""
-        for (let i = event.resultIndex; i < event.results.length; i += 1) {
-          const result = event.results[i]
-          const transcript = result[0]?.transcript ?? ""
-          if (result.isFinal) {
-            const text = transcript.trim()
-            if (text) callbacksRef.current.onFinalText(text)
-          } else {
-            interim += transcript
-          }
-        }
-        setInterimText(interim.trim())
+        heard = true
+        const { finals, interim } = tracker.update(event)
+        for (const text of finals) callbacksRef.current.onFinalText(text)
+        setInterimText(interim)
       }
       recognition.onerror = (event) => {
         if (event.error === "aborted" || event.error === "no-speech") return
+        if (!heard && isRecognitionServiceMissing(event.error)) {
+          // This browser has the API but no speech service behind it. Stop
+          // offering it, and move this press over to the cloud engine when
+          // a key is set.
+          markBrowserRecognitionBroken()
+          if (generation !== generationRef.current) return
+          releaseSession({ kind: "browser", recognition })
+          sessionRef.current = null
+          if (contextRef.current.apiKeySet === true) {
+            void startCloudRef.current(generation, lang)
+          } else {
+            fail(generation, "browser-unsupported")
+          }
+          return
+        }
         fail(
           generation,
           event.error === "not-allowed" || event.error === "service-not-allowed"
@@ -278,6 +306,7 @@ export function useSpeechInput({
       clearTimeout(session.timer)
       session.recorder.onstop = () => {
         session.stream.getTracks().forEach((track) => track.stop())
+        void session.frontend?.stop()
         const blob = new Blob(session.chunks, { type: session.mimeType })
         if (blob.size === 0) {
           finish(generation)
@@ -294,15 +323,38 @@ export function useSpeechInput({
 
   const startCloud = useCallback(
     async (generation: number, lang: string) => {
+      // Unlike browser recognition, nothing is transcribed until the
+      // recording stops, so it stops by itself once the speaker pauses.
+      let frontend: AudioFrontend | null = null
       let stream: MediaStream
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        frontend = await startAudioFrontend({
+          onLevel: () => {},
+          onVadEvent: (event) => {
+            if (event === "speech-end") stopCloud(generation)
+          },
+          vad: createVad({
+            endSilenceMs: contextRef.current.prefs.voiceMode.endSilenceMs,
+          }),
+        })
+        stream = frontend.stream
       } catch (error) {
-        fail(generation, micErrorFromException(error))
-        return
+        const micError = micErrorFromException(error)
+        if (micError === "mic-denied") {
+          fail(generation, micError)
+          return
+        }
+        // No Web Audio here: record anyway; the user stops it by hand.
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        } catch (retryError) {
+          fail(generation, micErrorFromException(retryError))
+          return
+        }
       }
       if (generation !== generationRef.current) {
         stream.getTracks().forEach((track) => track.stop())
+        void frontend?.stop()
         return
       }
       let recorder: MediaRecorder
@@ -313,6 +365,7 @@ export function useSpeechInput({
           : new MediaRecorder(stream)
       } catch {
         stream.getTracks().forEach((track) => track.stop())
+        void frontend?.stop()
         fail(generation, "engine-failed")
         return
       }
@@ -326,6 +379,7 @@ export function useSpeechInput({
       sessionRef.current = {
         kind: "cloud",
         stream,
+        frontend,
         recorder,
         chunks,
         mimeType,
@@ -337,6 +391,9 @@ export function useSpeechInput({
     },
     [fail, stopCloud]
   )
+  useEffect(() => {
+    startCloudRef.current = startCloud
+  }, [startCloud])
 
   const start = useCallback(() => {
     if (busyRef.current) return

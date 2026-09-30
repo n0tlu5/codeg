@@ -2,7 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { speechTranscribe } from "@/lib/api"
 
-import { createUtteranceRecorder, MAX_UTTERANCE_MS } from "./utterance-recorder"
+import { markBrowserRecognitionBroken } from "@/lib/speech-capabilities"
+
+import {
+  BrowserRecognitionUnavailableError,
+  createUtteranceRecorder,
+  MAX_UTTERANCE_MS,
+} from "./utterance-recorder"
 
 vi.mock("@/lib/api", () => ({ speechTranscribe: vi.fn() }))
 
@@ -79,6 +85,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
+  markBrowserRecognitionBroken(false)
 })
 
 describe("utterance recorder - browser engine", () => {
@@ -114,6 +121,49 @@ describe("utterance recorder - browser engine", () => {
     expect(recognition.abort).toHaveBeenCalledOnce()
     await expect(recorder.endUtterance()).resolves.toBe("")
     expect(transcribe).not.toHaveBeenCalled()
+  })
+
+  it("switches to cloud transcription for good when recognition has no speech service", async () => {
+    const recorder = createUtteranceRecorder("browser", stream, "en-US", true)
+    recorder.beginUtterance()
+    const recognition = FakeRecognition.instances[0]
+    recognition.onerror?.({ error: "audio-capture" })
+
+    expect(recognition.abort).toHaveBeenCalledOnce()
+    expect(FakeMediaRecorder.instances).toHaveLength(1)
+    transcribe.mockResolvedValueOnce(" list my sessions ")
+    await expect(recorder.endUtterance()).resolves.toBe("list my sessions")
+    expect(transcribe).toHaveBeenCalledWith(
+      expect.any(String),
+      "audio/webm",
+      "en-US"
+    )
+
+    recorder.beginUtterance()
+    expect(FakeRecognition.instances).toHaveLength(1)
+    expect(FakeMediaRecorder.instances).toHaveLength(2)
+  })
+
+  it("rejects the utterance when recognition has no speech service and no key is set", async () => {
+    const recorder = createUtteranceRecorder("browser", stream, "en-US", false)
+    recorder.beginUtterance()
+    FakeRecognition.instances[0].onerror?.({ error: "network" })
+
+    await expect(recorder.endUtterance()).rejects.toBeInstanceOf(
+      BrowserRecognitionUnavailableError
+    )
+    expect(FakeMediaRecorder.instances).toHaveLength(0)
+  })
+
+  it("keeps recognition after a network error once speech was heard", async () => {
+    const recorder = createUtteranceRecorder("browser", stream, "en-US", true)
+    recorder.beginUtterance()
+    const recognition = FakeRecognition.instances[0]
+    recognition.emit(0, [result("hello", true)])
+    recognition.onerror?.({ error: "network" })
+
+    expect(FakeMediaRecorder.instances).toHaveLength(0)
+    await expect(recorder.endUtterance()).resolves.toBe("hello")
   })
 })
 

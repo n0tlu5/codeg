@@ -3177,6 +3177,7 @@
         "speechUnavailableNoMic": "Spracheingabe nicht verfügbar: Kein Mikrofon gefunden",
         "speechUnavailableCloud": "Spracheingabe benötigt einen Cloud-API-Schlüssel (Einstellungen → Sprache)",
         "speechCloudAuthFailed": "Der Sprachdienst hat den API-Schlüssel abgelehnt",
+        "speechBrowserUnsupported": "Dieser Browser kann keine Sprache erkennen (Chromium-Builds ohne Googles Sprachdienst). Hinterlege einen Cloud-API-Schlüssel unter Einstellungen → Sprache oder nutze Chrome oder Edge.",
         "speechFailed": "Spracheingabe fehlgeschlagen"
       },
       "messageQueue": {
@@ -6647,6 +6648,7 @@
     "startFailed": "Sprachmodus konnte nicht starten: {message}",
     "sendFailed": "Senden an den Assistenten fehlgeschlagen: {message}",
     "transcribeFailed": "Das Gesagte konnte nicht transkribiert werden: {message}",
+    "browserRecognitionUnavailable": "Dieser Browser kann keine Sprache erkennen. Hinterlege einen Cloud-API-Schlüssel unter Einstellungen → Sprache, um den Sprachmodus hier zu nutzen, oder nutze Chrome oder Edge.",
     "voiceTurnEndedEmpty": "Der Assistent hat ohne Antwort beendet.",
     "commands": {
       "stop": "stopp",

@@ -3177,6 +3177,7 @@
         "speechUnavailableNoMic": "語音輸入無法使用：找不到麥克風",
         "speechUnavailableCloud": "語音輸入需要雲端 API 金鑰（設定 → 語音）",
         "speechCloudAuthFailed": "語音服務拒絕了此 API 金鑰",
+        "speechBrowserUnsupported": "此瀏覽器無法辨識語音（不含 Google 語音服務的 Chromium 版本）。請在 設定 → 語音 中設定雲端 API 金鑰，或使用 Chrome / Edge。",
         "speechFailed": "語音輸入失敗"
       },
       "messageQueue": {
@@ -6647,6 +6648,7 @@
     "startFailed": "語音模式無法啟動：{message}",
     "sendFailed": "無法傳送給助理：{message}",
     "transcribeFailed": "無法辨識你說的話：{message}",
+    "browserRecognitionUnavailable": "此瀏覽器無法辨識語音。請在 設定 → 語音 中設定雲端 API 金鑰以在此使用語音模式，或使用 Chrome / Edge。",
     "voiceTurnEndedEmpty": "助理已結束，但沒有回覆。",
     "commands": {
       "stop": "停止",

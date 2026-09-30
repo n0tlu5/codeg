@@ -3177,6 +3177,7 @@
         "speechUnavailableNoMic": "Saisie vocale indisponible : aucun micro détecté",
         "speechUnavailableCloud": "La saisie vocale nécessite une clé API cloud (Paramètres → Voix)",
         "speechCloudAuthFailed": "Le service vocal a refusé la clé API",
+        "speechBrowserUnsupported": "Ce navigateur ne peut pas reconnaître la voix (versions de Chromium sans le service vocal de Google). Configurez une clé API cloud dans Paramètres → Voix, ou utilisez Chrome ou Edge.",
         "speechFailed": "Échec de la saisie vocale"
       },
       "messageQueue": {
@@ -6647,6 +6648,7 @@
     "startFailed": "Impossible de démarrer le mode vocal : {message}",
     "sendFailed": "Impossible d'envoyer à l'assistant : {message}",
     "transcribeFailed": "Impossible de transcrire ce que vous avez dit : {message}",
+    "browserRecognitionUnavailable": "Ce navigateur ne peut pas reconnaître la voix. Configurez une clé API cloud dans Paramètres → Voix pour utiliser le mode vocal ici, ou utilisez Chrome ou Edge.",
     "voiceTurnEndedEmpty": "L'assistant a terminé sans répondre.",
     "commands": {
       "stop": "stop|arrêter",

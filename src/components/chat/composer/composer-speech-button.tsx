@@ -28,6 +28,7 @@ const UNAVAILABLE_KEYS = {
 const ERROR_KEYS = {
   "mic-denied": "speechMicDenied",
   "engine-failed": "speechFailed",
+  "browser-unsupported": "speechBrowserUnsupported",
   "cloud-auth": "speechCloudAuthFailed",
   "cloud-not-configured": "speechUnavailableCloud",
 } as const satisfies Record<SpeechInputError, string>

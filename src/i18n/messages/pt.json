@@ -3177,6 +3177,7 @@
         "speechUnavailableNoMic": "Entrada de voz indisponível: nenhum microfone encontrado",
         "speechUnavailableCloud": "A entrada de voz precisa de uma chave de API em nuvem (Configurações → Voz)",
         "speechCloudAuthFailed": "O serviço de voz rejeitou a chave de API",
+        "speechBrowserUnsupported": "Este navegador não consegue reconhecer voz (versões do Chromium sem o serviço de voz do Google). Configure uma chave de API na nuvem em Configurações → Voz, ou use o Chrome ou o Edge.",
         "speechFailed": "Falha na entrada de voz"
       },
       "messageQueue": {
@@ -6647,6 +6648,7 @@
     "startFailed": "Não foi possível iniciar o modo de voz: {message}",
     "sendFailed": "Não foi possível enviar ao assistente: {message}",
     "transcribeFailed": "Não foi possível transcrever o que você disse: {message}",
+    "browserRecognitionUnavailable": "Este navegador não consegue reconhecer voz. Configure uma chave de API na nuvem em Configurações → Voz para usar o modo de voz aqui, ou use o Chrome ou o Edge.",
     "voiceTurnEndedEmpty": "O assistente terminou sem responder.",
     "commands": {
       "stop": "parar",

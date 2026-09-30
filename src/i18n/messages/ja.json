@@ -3177,6 +3177,7 @@
         "speechUnavailableNoMic": "音声入力は利用できません: マイクが見つかりません",
         "speechUnavailableCloud": "音声入力にはクラウドの API キーが必要です（設定 → 音声）",
         "speechCloudAuthFailed": "音声サービスが API キーを拒否しました",
+        "speechBrowserUnsupported": "このブラウザーは音声認識を利用できません（Google の音声サービスを含まない Chromium 系ブラウザー）。設定 → 音声 でクラウド API キーを設定するか、Chrome / Edge をお使いください。",
         "speechFailed": "音声入力に失敗しました"
       },
       "messageQueue": {
@@ -6647,6 +6648,7 @@
     "startFailed": "音声モードを開始できませんでした：{message}",
     "sendFailed": "アシスタントに送信できませんでした：{message}",
     "transcribeFailed": "発話を文字起こしできませんでした：{message}",
+    "browserRecognitionUnavailable": "このブラウザーは音声認識を利用できません。ここで音声モードを使うには 設定 → 音声 でクラウド API キーを設定するか、Chrome / Edge をお使いください。",
     "voiceTurnEndedEmpty": "アシスタントは返信せずに終了しました。",
     "commands": {
       "stop": "ストップ|停止",

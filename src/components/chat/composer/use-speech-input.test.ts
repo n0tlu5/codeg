@@ -30,6 +30,20 @@ let prefs: SpeechPrefs = {
 }
 vi.mock("@/lib/speech-prefs", () => ({ useSpeechPrefs: () => prefs }))
 
+// The cloud path watches the mic through the voice-mode audio frontend; the
+// fake hands out the getUserMedia stream and lets a test fire VAD events.
+let frontendOptions: { onVadEvent: (event: string) => void } | null = null
+const frontendStop = vi.fn(async () => {})
+vi.mock("@/lib/voice-mode/audio-frontend", () => ({
+  startAudioFrontend: async (options: {
+    onVadEvent: (event: string) => void
+  }) => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    frontendOptions = options
+    return { stream, stop: frontendStop }
+  },
+}))
+
 let caps: SpeechCapabilities = {
   browserStt: true,
   mediaCapture: true,
@@ -144,6 +158,8 @@ beforeEach(() => {
   caps = { browserStt: true, mediaCapture: true, secureContext: true }
   FakeRecognition.instances = []
   FakeRecorder.instances = []
+  frontendOptions = null
+  frontendStop.mockClear()
   tracks = [new FakeTrack()]
   getUserMedia.mockReset()
   getUserMedia.mockImplementation(async () => ({ getTracks: () => tracks }))
@@ -166,9 +182,12 @@ beforeEach(() => {
   })
 })
 
-afterEach(() => {
+afterEach(async () => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
+  const { markBrowserRecognitionBroken } =
+    await import("@/lib/speech-capabilities")
+  markBrowserRecognitionBroken(false)
 })
 
 describe("useSpeechInput - browser engine", () => {
@@ -211,13 +230,56 @@ describe("useSpeechInput - browser engine", () => {
     expect(result.current.status).toBe("idle")
   })
 
-  it("maps a network failure to engine-failed", async () => {
+  it("maps a network failure after speech was heard to engine-failed", async () => {
+    const { result, onError } = renderSpeech()
+    act(() => result.current.start())
+    await waitFor(() => expect(result.current.status).toBe("listening"))
+
+    const recognition = lastRecognition()
+    act(() => recognition.emit([{ transcript: "hel", isFinal: false }]))
+    act(() => recognition.onerror?.({ error: "network" }))
+    expect(onError).toHaveBeenCalledWith("engine-failed")
+    expect(getUserMedia).not.toHaveBeenCalled()
+  })
+
+  it("moves to the cloud engine when recognition has no speech service", async () => {
+    const { result, onError, onFinalText } = renderSpeech()
+    await waitFor(() => expect(result.current.status).toBe("idle"))
+    act(() => result.current.start())
+    await waitFor(() => expect(result.current.status).toBe("listening"))
+
+    const recognition = lastRecognition()
+    act(() => recognition.onerror?.({ error: "audio-capture" }))
+    expect(recognition.abort).toHaveBeenCalled()
+    await waitFor(() => expect(lastRecorder()?.state).toBe("recording"))
+    expect(onError).not.toHaveBeenCalled()
+    expect(result.current.status).toBe("listening")
+
+    mockTranscribe.mockResolvedValue("open the pull request")
+    act(() => result.current.stop())
+    await waitFor(() =>
+      expect(onFinalText).toHaveBeenCalledWith("open the pull request")
+    )
+  })
+
+  it("reports browser-unsupported when recognition has no speech service and no key is set", async () => {
+    mockGetSettings.mockResolvedValue({
+      settings: {
+        baseUrl: "https://api.openai.com/v1",
+        sttModel: "whisper-1",
+        ttsModel: "tts-1",
+        ttsVoice: "alloy",
+      },
+      apiKeySet: false,
+    })
     const { result, onError } = renderSpeech()
     act(() => result.current.start())
     await waitFor(() => expect(result.current.status).toBe("listening"))
 
     act(() => lastRecognition().onerror?.({ error: "network" }))
-    expect(onError).toHaveBeenCalledWith("engine-failed")
+    expect(onError).toHaveBeenCalledWith("browser-unsupported")
+    expect(getUserMedia).not.toHaveBeenCalled()
+    expect(result.current.status).toBe("idle")
   })
 
   it("returns to idle when the engine ends on its own", async () => {
@@ -269,6 +331,41 @@ describe("useSpeechInput - cloud engine", () => {
     expect(language).toBe("de-DE")
     expect(tracks[0].stop).toHaveBeenCalled()
     expect(result.current.status).toBe("idle")
+  })
+
+  it("stops and inserts by itself when the speaker pauses", async () => {
+    mockTranscribe.mockResolvedValue("open the pull request")
+    const { result, onFinalText } = renderSpeech()
+    act(() => result.current.start())
+    await waitFor(() => expect(result.current.status).toBe("listening"))
+
+    act(() => frontendOptions?.onVadEvent("speech-start"))
+    expect(lastRecorder().state).toBe("recording")
+    act(() => frontendOptions?.onVadEvent("speech-end"))
+
+    await waitFor(() =>
+      expect(onFinalText).toHaveBeenCalledWith("open the pull request")
+    )
+    expect(frontendStop).toHaveBeenCalled()
+    expect(tracks[0].stop).toHaveBeenCalled()
+    expect(result.current.status).toBe("idle")
+  })
+
+  it("still records, stopped by hand, when Web Audio is unavailable", async () => {
+    const audioFrontend = await import("@/lib/voice-mode/audio-frontend")
+    const spy = vi
+      .spyOn(audioFrontend, "startAudioFrontend")
+      .mockRejectedValueOnce(new Error("no AudioWorklet"))
+    mockTranscribe.mockResolvedValue("hallo")
+    const { result, onFinalText, onError } = renderSpeech()
+    act(() => result.current.start())
+    await waitFor(() => expect(result.current.status).toBe("listening"))
+    expect(getUserMedia).toHaveBeenCalledWith({ audio: true })
+
+    act(() => result.current.stop())
+    await waitFor(() => expect(onFinalText).toHaveBeenCalledWith("hallo"))
+    expect(onError).not.toHaveBeenCalled()
+    spy.mockRestore()
   })
 
   it("cancel discards the recording, sends nothing and stops the tracks", async () => {

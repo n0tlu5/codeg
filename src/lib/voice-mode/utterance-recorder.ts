@@ -1,8 +1,12 @@
 import { speechTranscribe } from "@/lib/api"
+import { markBrowserRecognitionBroken } from "@/lib/speech-capabilities"
 import {
   blobToBase64,
+  createRecognitionTextTracker,
+  isRecognitionServiceMissing,
   pickRecorderMimeType,
   recognitionCtor,
+  recognitionRepeatsText,
   type RecognitionLike,
 } from "@/lib/speech-engines"
 
@@ -19,17 +23,34 @@ export interface UtteranceRecorder {
 export function createUtteranceRecorder(
   engine: "browser" | "cloud",
   stream: MediaStream,
-  language: string
+  language: string,
+  cloudConfigured = false
 ): UtteranceRecorder {
-  return engine === "browser"
-    ? createBrowserRecorder(language)
-    : createCloudRecorder(stream, language)
+  if (engine === "cloud") return createCloudRecorder(stream, language)
+  return createBrowserRecorder(
+    language,
+    cloudConfigured ? () => createCloudRecorder(stream, language) : null
+  )
 }
 
-function createBrowserRecorder(language: string): UtteranceRecorder {
+export class BrowserRecognitionUnavailableError extends Error {
+  constructor() {
+    super("browser speech recognition is unavailable")
+    this.name = "BrowserRecognitionUnavailableError"
+  }
+}
+
+function createBrowserRecorder(
+  language: string,
+  createFallback: (() => UtteranceRecorder) | null
+): UtteranceRecorder {
   let recognition: RecognitionLike | null = null
   let finals = ""
   let interim = ""
+  // Replaces recognition for good once the browser shows it has no speech
+  // service; the utterance in progress moves over with it.
+  let fallback: UtteranceRecorder | null = null
+  let broken = false
 
   const release = () => {
     if (!recognition) return
@@ -43,6 +64,7 @@ function createBrowserRecorder(language: string): UtteranceRecorder {
 
   return {
     beginUtterance() {
+      if (fallback) return fallback.beginUtterance()
       if (recognition) return
       const Ctor = recognitionCtor()
       if (!Ctor) return
@@ -52,15 +74,22 @@ function createBrowserRecorder(language: string): UtteranceRecorder {
       next.continuous = true
       next.interimResults = true
       next.lang = language
+      const tracker = createRecognitionTextTracker(recognitionRepeatsText())
+      let heard = false
       next.onresult = (event) => {
-        let pending = ""
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i]
-          const transcript = result[0]?.transcript ?? ""
-          if (result.isFinal) finals += transcript
-          else pending += transcript
-        }
-        interim = pending
+        heard = true
+        const update = tracker.update(event)
+        finals = [finals, ...update.finals].filter(Boolean).join(" ")
+        interim = update.interim
+      }
+      next.onerror = (event) => {
+        if (heard || !isRecognitionServiceMissing(event.error)) return
+        markBrowserRecognitionBroken()
+        release()
+        broken = true
+        if (!createFallback) return
+        fallback = createFallback()
+        fallback.beginUtterance()
       }
       recognition = next
       try {
@@ -70,11 +99,17 @@ function createBrowserRecorder(language: string): UtteranceRecorder {
       }
     },
     endUtterance() {
-      const text = recognition ? `${finals}${interim}`.trim() : ""
+      if (fallback) return fallback.endUtterance()
+      if (broken)
+        return Promise.reject(new BrowserRecognitionUnavailableError())
+      const text = recognition ? `${finals} ${interim}`.trim() : ""
       release()
       return Promise.resolve(text)
     },
-    abort: release,
+    abort() {
+      if (fallback) return fallback.abort()
+      release()
+    },
   }
 }
 

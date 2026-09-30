@@ -3177,6 +3177,7 @@
         "speechUnavailableNoMic": "음성 입력 불가: 마이크를 찾을 수 없습니다",
         "speechUnavailableCloud": "음성 입력에는 클라우드 API 키가 필요합니다(설정 → 음성)",
         "speechCloudAuthFailed": "음성 서비스가 API 키를 거부했습니다",
+        "speechBrowserUnsupported": "이 브라우저는 음성을 인식할 수 없습니다(Google 음성 서비스가 없는 Chromium 계열). 설정 → 음성에서 클라우드 API 키를 설정하거나 Chrome 또는 Edge를 사용하세요.",
         "speechFailed": "음성 입력에 실패했습니다"
       },
       "messageQueue": {
@@ -6647,6 +6648,7 @@
     "startFailed": "음성 모드를 시작할 수 없습니다: {message}",
     "sendFailed": "어시스턴트에게 보낼 수 없습니다: {message}",
     "transcribeFailed": "말씀하신 내용을 받아쓸 수 없습니다: {message}",
+    "browserRecognitionUnavailable": "이 브라우저는 음성을 인식할 수 없습니다. 여기서 음성 모드를 쓰려면 설정 → 음성에서 클라우드 API 키를 설정하거나 Chrome 또는 Edge를 사용하세요.",
     "voiceTurnEndedEmpty": "어시스턴트가 답변 없이 종료했습니다.",
     "commands": {
       "stop": "정지",

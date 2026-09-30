@@ -3177,6 +3177,7 @@
         "speechUnavailableNoMic": "Voice input unavailable: no microphone found",
         "speechUnavailableCloud": "Voice input needs a cloud API key (Settings → Speech)",
         "speechCloudAuthFailed": "The speech service rejected the API key",
+        "speechBrowserUnsupported": "This browser can't recognize speech (Chromium builds without Google's speech service). Set a cloud API key in Settings → Speech, or use Chrome or Edge.",
         "speechFailed": "Voice input failed"
       },
       "messageQueue": {
@@ -6647,6 +6648,7 @@
     "startFailed": "Voice mode could not start: {message}",
     "sendFailed": "Could not send to the assistant: {message}",
     "transcribeFailed": "Could not transcribe what you said: {message}",
+    "browserRecognitionUnavailable": "This browser can't recognize speech. Set a cloud API key in Settings → Speech to use voice mode here, or use Chrome or Edge.",
     "voiceTurnEndedEmpty": "The assistant finished without a reply.",
     "commands": {
       "stop": "stop",

@@ -38,6 +38,7 @@ import {
 } from "@/lib/voice-mode/audio-frontend"
 import { createSentenceStream } from "@/lib/voice-mode/sentence-stream"
 import {
+  BrowserRecognitionUnavailableError,
   createUtteranceRecorder,
   type UtteranceRecorder,
 } from "@/lib/voice-mode/utterance-recorder"
@@ -316,6 +317,11 @@ export function VoiceModeHost({
       case "speech-end":
         setVoicePhase("transcribing")
         recorder.endUtterance().then(handleTranscript, (error: unknown) => {
+          if (error instanceof BrowserRecognitionUnavailableError) {
+            toast.error(t("browserRecognitionUnavailable"))
+            stop()
+            return
+          }
           toast.error(t("transcribeFailed", { message: String(error) }))
           settleAfterUtterance()
         })
@@ -403,7 +409,8 @@ export function VoiceModeHost({
       recorderRef.current = createUtteranceRecorder(
         input.engine,
         frontend.stream,
-        language
+        language,
+        speech.apiKeySet
       )
       setVoicePhase("listening")
       log("listening")
